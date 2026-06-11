@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateObject } from 'ai'
 import { createGoogleGenerativeAI, google } from '@ai-sdk/google'
+import { createHash } from 'crypto'
 import { getAIKeyForModule, AI_MODELS } from '@/lib/ai-config'
 import { z } from 'zod'
 import { supabaseServer } from '@/lib/supabase/server'
@@ -406,7 +407,7 @@ ANALYSIS METADATA:
     
     // Create a consistent hash from scenario parameters
     const hashString = JSON.stringify(hashInput, Object.keys(hashInput).sort())
-    return require('crypto').createHash('sha256').update(hashString).digest('hex').substring(0, 16)
+    return createHash('sha256').update(hashString).digest('hex').substring(0, 16)
   }
 
   // Check for similar scenario results that can be reused
@@ -470,7 +471,11 @@ ANALYSIS METADATA:
   }
 
   // Comprehensive data gathering for impact analysis
-  private async gatherSupplyChainData(simulationId: string): Promise<{
+  private async gatherSupplyChainData(
+    simulationId: string,
+    passedNodes: Node[] = [],
+    passedEdges: Edge[] = []
+  ): Promise<{
     simulation: Simulation,
     supplyChain: SupplyChain,
     nodes: Node[],
@@ -499,20 +504,28 @@ ANALYSIS METADATA:
       if (scError) throw scError
 
       // Fetch nodes
-      const { data: nodes, error: nodesError } = await supabaseServer
-        .from('nodes')
-        .select('*')
-        .eq('supply_chain_id', simulation.supply_chain_id)
+      let nodes = passedNodes
+      if (!nodes || nodes.length === 0) {
+        const { data: dbNodes, error: nodesError } = await supabaseServer
+          .from('nodes')
+          .select('*')
+          .eq('supply_chain_id', simulation.supply_chain_id)
 
-      if (nodesError) throw nodesError
+        if (nodesError) throw nodesError
+        nodes = dbNodes || []
+      }
 
       // Fetch edges
-      const { data: edges, error: edgesError } = await supabaseServer
-        .from('edges')
-        .select('*')
-        .eq('supply_chain_id', simulation.supply_chain_id)
+      let edges = passedEdges
+      if (!edges || edges.length === 0) {
+        const { data: dbEdges, error: edgesError } = await supabaseServer
+          .from('edges')
+          .select('*')
+          .eq('supply_chain_id', simulation.supply_chain_id)
 
-      if (edgesError) throw edgesError
+        if (edgesError) throw edgesError
+        edges = dbEdges || []
+      }
 
       // Fetch existing impact results
       const { data: existingImpacts, error: impactsError } = await supabaseServer
@@ -855,7 +868,11 @@ ANALYSIS METADATA:
   }
 
   // Main method for comprehensive impact assessment
-  public async conductComprehensiveImpactAssessment(simulationId: string): Promise<any> {
+  public async conductComprehensiveImpactAssessment(
+    simulationId: string,
+    passedNodes: Node[] = [],
+    passedEdges: Edge[] = []
+  ): Promise<any> {
     const startTime = Date.now()
     console.log(`� Starting comprehensive impact assessment for simulation ${simulationId}`)
 
@@ -880,7 +897,7 @@ ANALYSIS METADATA:
       }
 
       // Gather comprehensive data
-      const supplyChainData = await this.gatherSupplyChainData(simulationId)
+      const supplyChainData = await this.gatherSupplyChainData(simulationId, passedNodes, passedEdges)
       
       // Build memory context from previous assessments
       const memoryContext = await this.buildMemoryContext(
@@ -1096,7 +1113,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { simulationId, forceRefresh = false } = body
+    const { simulationId, forceRefresh = false, nodes = [], edges = [] } = body
     
     if (!simulationId) {
       return NextResponse.json({
@@ -1119,7 +1136,7 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    const result = await agent.conductComprehensiveImpactAssessment(simulationId)
+    const result = await agent.conductComprehensiveImpactAssessment(simulationId, nodes, edges)
     
     return NextResponse.json({
       success: true,

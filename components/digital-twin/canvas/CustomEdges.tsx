@@ -6,6 +6,7 @@ import {
   EdgeLabelRenderer,
   getSmoothStepPath
 } from 'reactflow';
+import { useDigitalTwinStore } from '@/lib/digitalTwinStore';
 
 export const TransportEdge = ({
   id,
@@ -30,6 +31,9 @@ export const TransportEdge = ({
     targetPosition
   });
 
+  const { disruptedEdges } = useDigitalTwinStore();
+  const isDisrupted = disruptedEdges.includes(id);
+
   // Get emoji and text for transport mode
   const getTransportInfo = () => {
     switch (data?.mode) {
@@ -53,8 +57,10 @@ export const TransportEdge = ({
         path={edgePath}
         id={id}
         style={{
-          strokeWidth: 2,
-          stroke: '#64748b',
+          strokeWidth: isDisrupted ? 4 : 2,
+          stroke: isDisrupted ? '#ef4444' : '#64748b',
+          strokeDasharray: isDisrupted ? '5,5' : 'none',
+          animation: isDisrupted ? 'dashdraw 1s linear infinite' : 'none',
           ...style
         }}
       />
@@ -101,5 +107,10 @@ export const TransportEdge = ({
 };
 
 export const edgeTypes = {
-  transportEdge: TransportEdge
+  transportEdge: TransportEdge,
+  sea: TransportEdge,
+  air: TransportEdge,
+  rail: TransportEdge,
+  road: TransportEdge,
+  default: TransportEdge
 };

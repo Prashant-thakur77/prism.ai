@@ -224,15 +224,17 @@ export function LandingHeader() {
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </motion.button>
 
-          <Link href="/dashboard" passHref legacyBehavior>
-            <motion.a
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
+          <motion.div
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Link
+              href="/dashboard"
               className="hidden md:flex items-center justify-center px-6 py-2 rounded-full font-medium text-sm text-white bg-gradient-to-r from-[#2563EB] to-[#7C3AED] shadow-[0_2px_12px_rgba(37,99,235,0.25)] hover:shadow-[0_4px_16px_rgba(37,99,235,0.35)] transition-all"
             >
               Request Access
-            </motion.a>
-          </Link>
+            </Link>
+          </motion.div>
 
           {userData && (
             <div ref={profileDropdownRef} className="relative hidden md:block">
@@ -317,10 +319,11 @@ export function LandingHeader() {
                 </div>
               ))}
               <div className="pt-2">
-                <Link href="/dashboard" passHref legacyBehavior>
-                  <a className="block w-full text-center px-4 py-3 rounded-xl font-medium text-sm text-white bg-gradient-to-r from-[#2563EB] to-[#7C3AED] shadow-md">
-                    Request Access
-                  </a>
+                <Link
+                  href="/dashboard"
+                  className="block w-full text-center px-4 py-3 rounded-xl font-medium text-sm text-white bg-gradient-to-r from-[#2563EB] to-[#7C3AED] shadow-md"
+                >
+                  Request Access
                 </Link>
               </div>
             </div>

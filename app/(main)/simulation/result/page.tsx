@@ -130,9 +130,9 @@ function transformSimulationData(
 
   // Extract key findings and impact breakdown from result_summary if available
   const resultSummary = simulation.result_summary || {}
-  const keyFindings = resultSummary.key_findings || []
-  const impactBreakdown = resultSummary.impact_breakdown || []
-  const riskFactors = resultSummary.risk_factors || []
+  const keyFindings = resultSummary.keyFindings || resultSummary.key_findings || []
+  const impactBreakdown = resultSummary.impactBreakdown || resultSummary.impact_breakdown || []
+  const riskFactors = resultSummary.riskFactors || resultSummary.risk_factors || []
 
   return {
     scenarioName: simulation.name,

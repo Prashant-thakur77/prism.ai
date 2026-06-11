@@ -11,7 +11,12 @@ interface DigitalTwinState {
   selectedElement: Node | Edge | null;
   hoveredElement: string | null;
   simulationMode: boolean;
+  isControlTowerMode: boolean;
   selectedSupplyChain: string;
+  disruptedNodes: string[];
+  disruptedEdges: string[];
+  disruptionAnalysis: any | null;
+  isAnalyzingDisruption: boolean;
   
   // Actions
   setNodes: (nodes: Node[]) => void;
@@ -25,7 +30,13 @@ interface DigitalTwinState {
   setSelectedElement: (element: Node | Edge | null) => void;
   setHoveredElement: (elementId: string | null) => void;
   setSimulationMode: (mode: boolean) => void;
+  setControlTowerMode: (mode: boolean) => void;
   setSelectedSupplyChain: (id: string) => void;
+  setDisruptedNodes: (nodes: string[]) => void;
+  setDisruptedEdges: (edges: string[]) => void;
+  clearDisruptions: () => void;
+  setDisruptionAnalysis: (analysis: any | null) => void;
+  setIsAnalyzingDisruption: (isAnalyzing: boolean) => void;
   
   // Simulation
   runSimulation: () => void;
@@ -42,7 +53,12 @@ export const useDigitalTwinStore = create<DigitalTwinState>((set, get) => ({
   selectedElement: null,
   hoveredElement: null,
   simulationMode: false,
+  isControlTowerMode: false,
   selectedSupplyChain: 'default-chain',
+  disruptedNodes: [],
+  disruptedEdges: [],
+  disruptionAnalysis: null,
+  isAnalyzingDisruption: false,
   
   // Node & Edge actions
   setNodes: (nodes) => set({ nodes }),
@@ -88,7 +104,17 @@ export const useDigitalTwinStore = create<DigitalTwinState>((set, get) => ({
   setSelectedElement: (element) => set({ selectedElement: element }),
   setHoveredElement: (elementId) => set({ hoveredElement: elementId }),
   setSimulationMode: (mode) => set({ simulationMode: mode }),
+  setControlTowerMode: (mode) => set({ 
+    isControlTowerMode: mode, 
+    // Clear disruptions when exiting control tower mode
+    ...(mode === false ? { disruptedNodes: [], disruptedEdges: [], disruptionAnalysis: null } : {})
+  }),
   setSelectedSupplyChain: (id) => set({ selectedSupplyChain: id }),
+  setDisruptedNodes: (nodes) => set({ disruptedNodes: nodes }),
+  setDisruptedEdges: (edges) => set({ disruptedEdges: edges }),
+  clearDisruptions: () => set({ disruptedNodes: [], disruptedEdges: [], disruptionAnalysis: null }),
+  setDisruptionAnalysis: (analysis) => set({ disruptionAnalysis: analysis }),
+  setIsAnalyzingDisruption: (isAnalyzing) => set({ isAnalyzingDisruption: isAnalyzing }),
   
   // Simulation
   runSimulation: () => {
