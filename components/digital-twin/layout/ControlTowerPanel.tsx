@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useDisruptionSimulation } from '../canvas/hooks/useDisruptionSimulation';
 
 const ControlTowerPanel: FC = () => {
-  const { isControlTowerMode, disruptedNodes, disruptedEdges, nodes, clearDisruptions, disruptionAnalysis, isAnalyzingDisruption, setIsAnalyzingDisruption, setDisruptionAnalysis } = useDigitalTwinStore();
+  const { isControlTowerMode, disruptedNodes, disruptedEdges, nodes, edges, clearDisruptions, disruptionAnalysis, isAnalyzingDisruption, setIsAnalyzingDisruption, setDisruptionAnalysis } = useDigitalTwinStore();
   const [isScanning, setIsScanning] = useState(false);
   const { simulateDisruption } = useDisruptionSimulation();
 

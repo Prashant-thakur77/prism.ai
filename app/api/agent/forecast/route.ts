@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { generateObject } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { Redis } from '@upstash/redis';
 
 import { supabaseServer } from '../../../../lib/supabase/server';
 import { getAIKeyForModule, AI_MODELS } from '../../../../lib/ai-config';
 import { logger } from '../../../../lib/monitoring';
+
+// ─── Redis client (Upstash) ───────────────────────────────────────────────────
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_URL!,
+  token: process.env.UPSTASH_REDIS_TOKEN!,
+});
 
 // ─── Input validation ────────────────────────────────────────────────────────
 const ForecastRequestSchema = z.object({
@@ -227,11 +234,27 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const supply_chain_id = searchParams.get('supply_chain_id');
     const node_id = searchParams.get('node_id');
+    const force_refresh = searchParams.get('force_refresh') === 'true';
 
     if (!supply_chain_id) {
       return NextResponse.json({ error: 'Missing supply_chain_id parameter' }, { status: 400 });
     }
 
+    // ── 1. Check Redis cache first (skip if force_refresh) ───────────────────
+    if (!force_refresh && node_id) {
+      try {
+        const cachedForecast = await redis.get(`forecast:${node_id}`);
+        if (cachedForecast) {
+          logger.info({ message: 'Serving forecast from Redis cache', nodeId: node_id });
+          return NextResponse.json(cachedForecast);
+        }
+      } catch (cacheErr) {
+        // Non-critical — fall through to DB
+        logger.warn?.({ message: 'Redis cache read failed, falling back to DB', error: cacheErr });
+      }
+    }
+
+    // ── 2. Hit Supabase ──────────────────────────────────────────────────────
     let query = supabaseServer
       .from('forecasts')
       .select('*')
@@ -244,6 +267,16 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
+    }
+
+    // ── 3. Write single-node result back to Redis (30 min TTL) ───────────────
+    if (node_id && forecasts && forecasts.length > 0) {
+      try {
+        await redis.setex(`forecast:${node_id}`, 1800, forecasts[0]);
+      } catch (cacheErr) {
+        // Non-critical
+        console.warn('Redis cache write failed:', cacheErr);
+      }
     }
 
     return NextResponse.json({

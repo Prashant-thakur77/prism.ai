@@ -109,6 +109,22 @@ const EMPTY_SIMULATION_RESULTS: SimulationResults = {
   riskFactors: []
 }
 
+// Normalize any AI response shape to always have a valid metrics object
+function normalizeResults(data: any): SimulationResults {
+  if (!data) return EMPTY_SIMULATION_RESULTS
+  return {
+    ...EMPTY_SIMULATION_RESULTS,
+    ...data,
+    metrics: {
+      ...EMPTY_SIMULATION_RESULTS.metrics,
+      ...(data.metrics || {})
+    },
+    keyFindings: data.keyFindings || data.key_findings || EMPTY_SIMULATION_RESULTS.keyFindings,
+    impactBreakdown: data.impactBreakdown || data.impact_breakdown || EMPTY_SIMULATION_RESULTS.impactBreakdown,
+    riskFactors: data.riskFactors || data.risk_factors || EMPTY_SIMULATION_RESULTS.riskFactors,
+  }
+}
+
 // Utility function to transform database records to UI format
 function transformSimulationData(
   simulation: Simulation,
@@ -201,7 +217,7 @@ export default function SimulationResultPage() {
           
           if (enhancedResults && enhancedResults.scenarioName) {
             console.log('✅ Enhanced simulation results retrieved successfully')
-            setSimulationResults(enhancedResults)
+            setSimulationResults(normalizeResults(enhancedResults))
             setIsEnhancedAnalysis(true)
             return
           }
@@ -253,7 +269,7 @@ export default function SimulationResultPage() {
 
       if (enhancedResults) {
         console.log('✅ AI impact assessment completed successfully')
-        setSimulationResults(enhancedResults)
+        setSimulationResults(normalizeResults(enhancedResults))
         setIsEnhancedAnalysis(true)
         toast.success("AI impact assessment completed successfully")
       }

@@ -48,22 +48,30 @@ export async function POST(request: NextRequest) {
     console.log(`🚀 Finalizing strategies for simulation ${simulationId}`)
     console.log(`📊 Approved strategy indices:`, finalizeData.approvedStrategies)
 
-    // Fetch all strategies for this simulation first
-    const { data: allStrategies, error: strategiesError } = await supabase
-      .from('strategies')
-      .select('*')
+    // Fetch all strategies from the simulation's result_summary
+    const { data: simulation, error: simError } = await supabase
+      .from('simulations')
+      .select('result_summary')
       .eq('simulation_id', simulationId)
-      .order('created_at', { ascending: true })
+      .single()
 
-    if (strategiesError) {
-      console.error('Error fetching strategies:', strategiesError)
+    if (simError || !simulation || !simulation.result_summary?.strategyAnalysis) {
+      console.error('Error fetching strategies from simulation:', simError)
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch strategies' },
-        { status: 500 }
+        { success: false, error: 'Failed to fetch strategies or none exist' },
+        { status: 404 }
       )
     }
 
-    if (!allStrategies || allStrategies.length === 0) {
+    const stratData = simulation.result_summary.strategyAnalysis
+    // UI displays them all flattened in order: immediate, shortTerm, longTerm
+    const allStrategies = [
+      ...(stratData.immediate || []),
+      ...(stratData.shortTerm || []),
+      ...(stratData.longTerm || [])
+    ]
+
+    if (allStrategies.length === 0) {
       return NextResponse.json(
         { success: false, error: 'No strategies found for this simulation' },
         { status: 404 }
@@ -76,23 +84,23 @@ export async function POST(request: NextRequest) {
       .filter(Boolean) // Remove any undefined entries
 
     console.log(`✅ Found ${strategies.length} strategies to finalize:`, 
-      strategies.map(s => ({ id: s.strategy_id, title: s.strategy_title })))
+      strategies.map(s => ({ id: s.id, title: s.title })))
 
-    const finalizedStrategyIds = []
+    const finalizedStrategyIds: string[] = []
 
     // Process each approved strategy
     for (const strategy of strategies) {
       try {
-        console.log(`🔄 Processing strategy: ${strategy.strategy_title} (${strategy.strategy_id})`)
+        console.log(`🔄 Processing strategy: ${strategy.title} (${strategy.id})`)
         
         // Generate execution data for this strategy
         const executionResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/agent/strategy-execution`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            strategyId: strategy.strategy_id,
+            strategyId: strategy.id,
             supplyChainContext: {
-              supplyChainId: strategy.simulation_id // Using simulation for context
+              supplyChainId: simulationId // Using simulation for context
             },
             scenarioType: 'Supply Chain Disruption',
             organizationInfo: {
@@ -104,7 +112,7 @@ export async function POST(request: NextRequest) {
         })
 
         if (!executionResponse.ok) {
-          console.error(`❌ Failed to generate execution data for ${strategy.strategy_id}:`, 
+          console.error(`❌ Failed to generate execution data for ${strategy.id}:`, 
             executionResponse.status, executionResponse.statusText)
           continue
         }
@@ -112,12 +120,12 @@ export async function POST(request: NextRequest) {
         const executionResult = await executionResponse.json()
 
         if (!executionResult.success) {
-          console.error(`❌ Execution generation failed for ${strategy.strategy_id}:`, 
+          console.error(`❌ Execution generation failed for ${strategy.id}:`, 
             executionResult.error)
           continue
         }
 
-        console.log(`✅ Generated execution data for ${strategy.strategy_title}:`, {
+        console.log(`✅ Generated execution data for ${strategy.title}:`, {
           nodes: executionResult.data.nodes?.length || 0,
           tasks: executionResult.data.totalTasks || 0
         })
@@ -126,7 +134,7 @@ export async function POST(request: NextRequest) {
         const { data: finalizedStrategy, error: finalizeError } = await supabase
           .from('finalized_strategies')
           .insert({
-            strategy_id: strategy.strategy_id,
+            strategy_id: strategy.id,
             name: executionResult.data.name,
             type: executionResult.data.type,
             status: 'active',
@@ -200,7 +208,7 @@ export async function POST(request: NextRequest) {
         finalizedStrategyIds.push(finalizedStrategy.id)
         console.log(`✅ Finalized strategy: ${finalizedStrategy.id}`)
       } catch (error) {
-        console.error(`Error processing strategy ${strategy.strategy_id}:`, error)
+        console.error(`Error processing strategy ${strategy.id}:`, error)
       }
     }
 

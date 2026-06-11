@@ -252,9 +252,7 @@ export const FinalizeStrategyPanel: React.FC<FinalizeStrategyPanelProps> = ({
   if (!open) return null
 
   return (
-    <div className={`fixed right-0 top-[80px] h-[calc(100vh-80px)] w-[450px] z-[51] p-4 transition-transform duration-300 ease-in-out ${
-      roadmapOpen ? 'translate-x-[-450px]' : ''
-    } bg-transparent`}>
+    <div className="fixed right-0 top-[80px] h-[calc(100vh-80px)] w-[450px] z-[51] p-4 transition-transform duration-300 ease-in-out bg-transparent">
       {content}
     </div>
   )

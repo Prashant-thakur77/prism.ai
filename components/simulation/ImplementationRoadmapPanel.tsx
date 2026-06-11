@@ -336,7 +336,7 @@ export const ImplementationRoadmapPanel: React.FC<ImplementationRoadmapPanelProp
 
   return (
     <div className={`fixed right-0 top-[80px] h-[calc(100vh-80px)] w-[400px] z-50 p-3 transition-transform duration-300 ease-in-out ${
-      finalizeOpen ? 'translate-x-[-400px]' : ''
+      finalizeOpen ? 'translate-x-[-450px]' : ''
     }`}>
       {content}
     </div>

@@ -282,28 +282,28 @@ class ProductionImpactAssessmentAgent {
 SUPPLY CHAIN IMPACT ASSESSMENT ANALYSIS:
 
 Simulation Details:
-- Scenario: ${impactData.scenarioName} (${impactData.scenarioType})
+- Scenario: ${supplyChainData.simulation.name} (${supplyChainData.simulation.scenario_type})
 - Supply Chain: ${supplyChainData.supplyChain?.name || 'Unknown'}
 - Organization: ${supplyChainData.supplyChain?.organisation || 'Unknown'}
 - Analysis Date: ${new Date().toISOString()}
 
 IMPACT METRICS:
-- Total Cost Impact: ${impactData.metrics.totalCostImpact}
-- Average Delay: ${impactData.metrics.averageDelay}
-- Inventory Reduction: ${impactData.metrics.inventoryReduction}
-- Recovery Time: ${impactData.metrics.recoveryTime}
-- Affected Nodes: ${impactData.metrics.affectedNodes}
-- Network Resilience Score: ${impactData.metrics.networkResilience || 'N/A'}/100
-- Cascading Probability: ${Math.round((impactData.metrics.cascadingProbability || 0) * 100)}%
+- Total Cost Impact: ${impactData.financialImpact?.totalCostImpact || 'Unknown'}
+- Average Delay: ${impactData.operationalImpact?.averageDelay || 'Unknown'}
+- Inventory Reduction: ${impactData.operationalImpact?.inventoryReduction || 'Unknown'}
+- Recovery Time: ${impactData.operationalImpact?.recoveryTime || 'Unknown'}
+- Affected Nodes: ${impactData.operationalImpact?.affectedNodes || 'Unknown'}
+- Network Resilience Score: ${impactData.networkResilience || 'N/A'}/100
+- Cascading Probability: ${Math.round((impactData.cascadingProbability || 0) * 100)}%
 
 KEY FINDINGS:
-${impactData.keyFindings.map((finding: string) => `- ${finding}`).join('\n')}
+${(impactData.keyFindings || (impactData.executiveSummary ? [impactData.executiveSummary] : [])).map((finding: string) => `- ${finding}`).join('\n')}
 
 FINANCIAL IMPACT BREAKDOWN:
-${impactData.impactBreakdown.map((impact: string) => `- ${impact}`).join('\n')}
+${(impactData.financialImpact?.costBreakdown || []).map((c: any) => `- ${c.category}: ${c.amount} (${c.percentage}%)`).join('\n')}
 
 RISK FACTORS IDENTIFIED:
-${impactData.riskFactors.map((risk: string) => `- ${risk}`).join('\n')}
+${(impactData.riskFactors || []).map((risk: string) => `- ${risk}`).join('\n')}
 
 ${impactData.cascadingEffects && impactData.cascadingEffects.length > 0 ? 
 `CASCADING EFFECTS:
@@ -314,7 +314,7 @@ ${impactData.cascadingEffects.slice(0, 5).map((effect: any) =>
 ${impactData.mitigationStrategies && impactData.mitigationStrategies.length > 0 ? 
 `TOP MITIGATION STRATEGIES:
 ${impactData.mitigationStrategies.slice(0, 3).map((strategy: any) => 
-  `- ${strategy.strategy} (Cost: ${strategy.estimatedCost}, Timeline: ${strategy.timeToImplement})`
+  `- ${strategy.title || strategy.strategy} (Cost: ${strategy.estimatedCost}, Timeline: ${strategy.timeToImplement})`
 ).join('\n')}` : ''}
 
 ANALYSIS METADATA:
@@ -472,9 +472,7 @@ ANALYSIS METADATA:
 
   // Comprehensive data gathering for impact analysis
   private async gatherSupplyChainData(
-    simulationId: string,
-    passedNodes: Node[] = [],
-    passedEdges: Edge[] = []
+    simulationId: string
   ): Promise<{
     simulation: Simulation,
     supplyChain: SupplyChain,
@@ -503,29 +501,21 @@ ANALYSIS METADATA:
 
       if (scError) throw scError
 
-      // Fetch nodes
-      let nodes = passedNodes
-      if (!nodes || nodes.length === 0) {
-        const { data: dbNodes, error: nodesError } = await supabaseServer
-          .from('nodes')
-          .select('*')
-          .eq('supply_chain_id', simulation.supply_chain_id)
+      // Always fetch nodes from Supabase (source of truth)
+      const { data: nodes, error: nodesError } = await supabaseServer
+        .from('nodes')
+        .select('*')
+        .eq('supply_chain_id', simulation.supply_chain_id)
 
-        if (nodesError) throw nodesError
-        nodes = dbNodes || []
-      }
+      if (nodesError) throw nodesError
 
-      // Fetch edges
-      let edges = passedEdges
-      if (!edges || edges.length === 0) {
-        const { data: dbEdges, error: edgesError } = await supabaseServer
-          .from('edges')
-          .select('*')
-          .eq('supply_chain_id', simulation.supply_chain_id)
+      // Always fetch edges from Supabase (source of truth)
+      const { data: edges, error: edgesError } = await supabaseServer
+        .from('edges')
+        .select('*')
+        .eq('supply_chain_id', simulation.supply_chain_id)
 
-        if (edgesError) throw edgesError
-        edges = dbEdges || []
-      }
+      if (edgesError) throw edgesError
 
       // Fetch existing impact results
       const { data: existingImpacts, error: impactsError } = await supabaseServer
@@ -869,12 +859,10 @@ ANALYSIS METADATA:
 
   // Main method for comprehensive impact assessment
   public async conductComprehensiveImpactAssessment(
-    simulationId: string,
-    passedNodes: Node[] = [],
-    passedEdges: Edge[] = []
+    simulationId: string
   ): Promise<any> {
     const startTime = Date.now()
-    console.log(`� Starting comprehensive impact assessment for simulation ${simulationId}`)
+    console.log(`🚀 Starting comprehensive impact assessment for simulation ${simulationId}`)
 
     try {
       // Check cache first
@@ -896,8 +884,8 @@ ANALYSIS METADATA:
         }
       }
 
-      // Gather comprehensive data
-      const supplyChainData = await this.gatherSupplyChainData(simulationId, passedNodes, passedEdges)
+      // Gather comprehensive data — always from Supabase
+      const supplyChainData = await this.gatherSupplyChainData(simulationId)
       
       // Build memory context from previous assessments
       const memoryContext = await this.buildMemoryContext(
@@ -1113,7 +1101,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { simulationId, forceRefresh = false, nodes = [], edges = [] } = body
+    const { simulationId, forceRefresh = false } = body
     
     if (!simulationId) {
       return NextResponse.json({
@@ -1136,7 +1124,7 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    const result = await agent.conductComprehensiveImpactAssessment(simulationId, nodes, edges)
+    const result = await agent.conductComprehensiveImpactAssessment(simulationId)
     
     return NextResponse.json({
       success: true,
