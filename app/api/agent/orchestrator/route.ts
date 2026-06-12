@@ -1,3 +1,4 @@
+import '@/lib/zod-patch';
 import { NextRequest, NextResponse } from 'next/server';
 import { LlmAgent, FunctionTool, Gemini, InMemoryRunner, stringifyContent } from '@google/adk';
 import { z } from 'zod';

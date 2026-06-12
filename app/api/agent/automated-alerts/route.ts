@@ -1,3 +1,4 @@
+import '@/lib/zod-patch';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
 import { tavily } from '@tavily/core';

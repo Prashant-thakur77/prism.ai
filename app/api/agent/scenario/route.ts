@@ -1,3 +1,4 @@
+import '@/lib/zod-patch';
 /**
  * Production Scenario Generator Agent (ADK Version)
  * Generates realistic "What-if" supply chain disruption scenarios

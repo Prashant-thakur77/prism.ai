@@ -1,3 +1,4 @@
+import '@/lib/zod-patch';
 /**
  * Enhanced Supply Chain Intelligent Agent V2.0 (ADK Version)
  * Specialized agent for gathering real-time supply chain intelligence

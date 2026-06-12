@@ -1,3 +1,4 @@
+import '@/lib/zod-patch';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { generateObject } from 'ai';

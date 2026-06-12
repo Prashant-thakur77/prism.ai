@@ -1,3 +1,4 @@
+import '@/lib/zod-patch';
 // Enhanced Supply Chain Impact Assessment Agent V2.0
 // Production-grade AI agent for comprehensive impact analysis with advanced ML algorithms
 
