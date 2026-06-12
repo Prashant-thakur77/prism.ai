@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import SaveSupplyChainDialog from '../forms/SaveSupplyChainDialog';
 import IntelligenceAnalysisDialog from '../IntelligenceAnalysisDialog';
 import FloatingSaveButton from './FloatingSaveButton';
+import ControlTowerToggle from './ControlTowerToggle';
 import { Node, Edge } from 'reactflow';
 
 interface SimulationToolbarProps {
@@ -143,6 +144,8 @@ const SimulationToolbar: FC<SimulationToolbarProps> = ({
         disabled={simulationMode}
         isLoading={isSaving}
       />
+      
+      <ControlTowerToggle />
 
       {/* Save Dialog */}
       <SaveSupplyChainDialog

@@ -303,15 +303,41 @@ function SimulationPageContent() {
 
       setIsLoading(true)
 
+      // Start the progress simulation immediately to animate while the API is working
+      const progressInterval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) {
+            return 90 // Pause at 90% until API responds
+          }
+          return prev + 5
+        })
+      }, 300)
+
       // Call the impact assessment agent with the simulation ID
       try {
         console.log(`🎯 Triggering impact assessment for simulation: ${created?.simulation_id}`)
         
+        let localNodes = []
+        let localEdges = []
+        try {
+          const localData = localStorage.getItem(`supplyChain-${selectedSupplyChainId}`)
+          if (localData) {
+            const chainData = JSON.parse(localData)
+            localNodes = chainData.nodes || []
+            localEdges = chainData.edges || []
+            console.log(`ℹ️ Loaded ${localNodes.length} nodes and ${localEdges.length} edges from localStorage for chain ${selectedSupplyChainId}`)
+          }
+        } catch (storageErr) {
+          console.warn('⚠️ Error parsing local supply chain data:', storageErr)
+        }
+
         const response = await fetch('/api/agent/impact', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             simulationId: created?.simulation_id,
+            nodes: localNodes,
+            edges: localEdges,
             forceRefresh: true 
           })
         })
@@ -377,29 +403,23 @@ function SimulationPageContent() {
         }
       } finally {
         setIsLoading(false)
-      }
-
-        const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval)
-            setSimulationRunning(false)
-            setSimulationComplete(true)
-            
-            // Set navigation URL for pending navigation
-            if (created?.simulation_id) {
-              console.log(`✅ Setting navigation for simulation: ${created.simulation_id}`)
-              setPendingNavigation(`/simulation/result?id=${created.simulation_id}`)
-            } else {
-              console.warn('⚠️ No simulation ID available, setting basic results page navigation')
-              setPendingNavigation('/simulation/result')
-            }
-
-            return 100
+        clearInterval(progressInterval)
+        setProgress(100)
+        
+        // Force a brief delay at 100% for user feedback before navigation
+        setTimeout(() => {
+          setSimulationRunning(false)
+          setSimulationComplete(true)
+          
+          if (created?.simulation_id) {
+            console.log(`✅ Setting navigation for simulation: ${created.simulation_id}`)
+            setPendingNavigation(`/simulation/result?id=${created.simulation_id}`)
+          } else {
+            console.warn('⚠️ No simulation ID available, setting basic results page navigation')
+            setPendingNavigation('/simulation/result')
           }
-          return prev + 10
-        })
-      }, 500)
+        }, 500)
+      }
     } catch (error) {
       console.error('Error starting simulation:', error)
       toast.error("Failed to start simulation")

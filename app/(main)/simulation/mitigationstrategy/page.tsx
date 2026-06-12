@@ -740,8 +740,9 @@ export default function MitigationStrategyPage() {
       )}
 
       <div className={`relative z-10 transition-all duration-300 ${
-        !isMobile && roadmapOpen && finalizeOpen ? 'pr-[820px]' : 
-        !isMobile && (roadmapOpen || finalizeOpen) ? 'pr-[420px]' : ''
+        !isMobile && roadmapOpen && finalizeOpen ? 'pr-[850px]' : 
+        !isMobile && finalizeOpen ? 'pr-[450px]' :
+        !isMobile && roadmapOpen ? 'pr-[400px]' : ''
       }`}>
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
         {/* Header */}

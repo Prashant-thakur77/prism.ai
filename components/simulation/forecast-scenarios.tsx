@@ -57,9 +57,10 @@ interface ForecastScenariosProps {
 export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) {
   const [scenarios, setScenarios] = useState<ScenarioData[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
   const [processingTime, setProcessingTime] = useState<number | null>(null)
   const [fromCache, setFromCache] = useState(false)
-  
+
   // const { userData } = useUser()
   const { selectedSupplyChainId, setSelectedSupplyChainId, supplyChains } = useScenario()
 
@@ -110,7 +111,39 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
     if (selectedSupplyChainId) {
       scenarioCache.clear(selectedSupplyChainId)
       await fetchScenarios(true)
-      toast("Scenarios Refreshed",{ description:"AI forecast scenarios have been updated with latest data."})
+      toast("Scenarios Refreshed", { description: "AI forecast scenarios have been updated with latest data." })
+    }
+  }
+
+  // Generate brand-new AI scenarios and save them to Supabase
+  const handleGenerateForecast = async () => {
+    if (!selectedSupplyChainId || isGenerating) return
+    setIsGenerating(true)
+    try {
+      toast("Generating AI Forecast…", { description: "Analyzing your supply chain and generating real scenarios. This takes ~15 seconds." })
+      const response = await fetch('/api/agent/forecast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          supplyChainId: selectedSupplyChainId,
+          forecastHorizon: 30,
+          includeWeather: true,
+          includeMarketData: true,
+        }),
+      })
+      const data = await response.json()
+      if (response.ok && data.success) {
+        toast("Forecast Generated!", { description: `${data.forecast?.scenarios?.length ?? 0} AI scenarios saved. Refreshing cards…` })
+        // Clear cache and reload from the freshly saved Supabase row
+        scenarioCache.clear(selectedSupplyChainId)
+        await fetchScenarios(true)
+      } else {
+        toast("Forecast Failed", { description: data.error || data.message || "Unknown error from forecast agent." })
+      }
+    } catch (err: any) {
+      toast("Forecast Failed", { description: err.message })
+    } finally {
+      setIsGenerating(false)
     }
   }
 
@@ -256,22 +289,36 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
                 Cached Results
               </Badge>
             )}
-            
+
             {processingTime && (
               <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                 {processingTime}ms
               </Badge>
             )}
-            
+
             <Button
               variant="outline"
               size="sm"
               onClick={handleRefresh}
-              disabled={isLoading}
+              disabled={isLoading || isGenerating}
               className="flex items-center gap-2"
             >
               <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
               Refresh
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={handleGenerateForecast}
+              disabled={isGenerating || isLoading || !selectedSupplyChainId}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0"
+            >
+              {isGenerating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              {isGenerating ? 'Generating…' : 'Generate AI Forecast'}
             </Button>
           </div>
         </div>

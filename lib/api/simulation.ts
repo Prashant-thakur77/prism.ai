@@ -185,45 +185,86 @@ export async function getCompleteSimulation(simulationId: string): Promise<{
 
 // Get enhanced simulation results with impact assessment
 export async function getEnhancedSimulationResults(simulationId: string): Promise<any> {
+  // Always fetch the base simulation so we always have scenarioName / status / completedAt
+  const basicSimulation = await getCompleteSimulation(simulationId)
+  const base = transformBasicToEnhanced(basicSimulation)
+
   try {
     const response = await fetch(`/api/agent/impact?simulationId=${simulationId}`)
-    
+
     if (!response.ok) {
-      throw new Error(`Failed to get enhanced results: ${response.statusText}`)
+      console.warn('Impact assessment API returned non-OK, using basic data')
+      return base
     }
 
     const result = await response.json()
-    
-    if (!result.success) {
-      // Fallback to basic simulation data if impact assessment is not available
-      console.warn('Impact assessment not available, falling back to basic simulation data')
-      const basicSimulation = await getCompleteSimulation(simulationId)
-      return transformBasicToEnhanced(basicSimulation)
+
+    if (!result.success || !result.data) {
+      console.warn('Impact assessment not successful, using basic data')
+      return base
     }
 
-    return result.data
+    const ai = result.data
+
+    // Map AI agent response shape → SimulationResults shape
+    return {
+      // Base fields always from the real simulation record
+      scenarioName:   base.scenarioName,
+      scenarioType:   base.scenarioType,
+      status:         base.status,
+      completedAt:    base.completedAt,
+
+      // Metrics: prefer AI values, fallback to base
+      metrics: {
+        totalCostImpact:    ai.financialImpact?.totalCostImpact    || base.metrics.totalCostImpact,
+        averageDelay:       ai.operationalImpact?.averageDelay      || base.metrics.averageDelay,
+        inventoryReduction: ai.operationalImpact?.inventoryReduction || base.metrics.inventoryReduction,
+        recoveryTime:       ai.operationalImpact?.recoveryTime       || base.metrics.recoveryTime,
+        affectedNodes:      ai.operationalImpact?.affectedNodes      || base.metrics.affectedNodes,
+        criticalPath:       ai.criticalPath                         || base.metrics.criticalPath,
+      },
+
+      // Narrative fields
+      keyFindings:   ai.keyFindings      || (ai.executiveSummary ? [ai.executiveSummary] : base.keyFindings),
+      impactBreakdown: ai.financialImpact?.costBreakdown?.map((c: any) =>
+        `${c.category}: ${c.amount} (${c.percentage}%)`
+      ) || base.impactBreakdown,
+      riskFactors:   ai.riskFactors      || base.riskFactors,
+
+      // Enhanced AI-only fields
+      mitigationStrategies: (ai.mitigationStrategies || base.mitigationStrategies)?.map((s: any) => ({
+        strategy:         s.title       || s.strategy,
+        estimatedCost:    s.estimatedCost,
+        timeToImplement:  s.timeToImplement,
+        riskReduction:    s.riskReduction,
+        feasibility:      s.feasibility || (s.difficulty === 'Low' ? 'HIGH' : s.difficulty === 'Medium' ? 'MEDIUM' : 'LOW'),
+      })),
+      cascadingEffects:   ai.cascadingEffects    || base.cascadingEffects,
+      networkAnalysis:    ai.networkAnalysis,
+      confidenceScore:    ai.confidenceScore,
+      processingTime:     ai.processingTime,
+      analysisDepth:      ai.analysisDepth       || 'AI_ENHANCED',
+    }
   } catch (error) {
     console.error('Error getting enhanced simulation results:', error)
-    // Fallback to basic simulation data
-    const basicSimulation = await getCompleteSimulation(simulationId)
-    return transformBasicToEnhanced(basicSimulation)
+    return base
   }
 }
 
+
 // Trigger impact assessment for a simulation
 export async function triggerImpactAssessment(simulationId: string, forceRefresh: boolean = false): Promise<any> {
+  // Fetch base simulation data first so we always have identity fields
+  const basicSimulation = await getCompleteSimulation(simulationId)
+  const base = transformBasicToEnhanced(basicSimulation)
+
   try {
     console.log(`🚀 Triggering impact assessment for simulation: ${simulationId}`)
-    
+
     const response = await fetch('/api/agent/impact', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        simulationId,
-        forceRefresh
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ simulationId, forceRefresh })
     })
 
     if (!response.ok) {
@@ -231,13 +272,46 @@ export async function triggerImpactAssessment(simulationId: string, forceRefresh
     }
 
     const result = await response.json()
-    
-    if (!result.success) {
+
+    if (!result.success || !result.data) {
       throw new Error(result.error || 'Impact assessment failed')
     }
 
     console.log('✅ Impact assessment completed successfully')
-    return result.data
+    const ai = result.data
+
+    // Map AI agent response → SimulationResults shape
+    return {
+      scenarioName:   base.scenarioName,
+      scenarioType:   base.scenarioType,
+      status:         base.status,
+      completedAt:    base.completedAt,
+      metrics: {
+        totalCostImpact:    ai.financialImpact?.totalCostImpact    || base.metrics.totalCostImpact,
+        averageDelay:       ai.operationalImpact?.averageDelay      || base.metrics.averageDelay,
+        inventoryReduction: ai.operationalImpact?.inventoryReduction || base.metrics.inventoryReduction,
+        recoveryTime:       ai.operationalImpact?.recoveryTime       || base.metrics.recoveryTime,
+        affectedNodes:      ai.operationalImpact?.affectedNodes      || base.metrics.affectedNodes,
+        criticalPath:       ai.criticalPath                         || base.metrics.criticalPath,
+      },
+      keyFindings:   ai.keyFindings || (ai.executiveSummary ? [ai.executiveSummary] : base.keyFindings),
+      impactBreakdown: ai.financialImpact?.costBreakdown?.map((c: any) =>
+        `${c.category}: ${c.amount} (${c.percentage}%)`
+      ) || base.impactBreakdown,
+      riskFactors:   ai.riskFactors || base.riskFactors,
+      mitigationStrategies: (ai.mitigationStrategies || base.mitigationStrategies)?.map((s: any) => ({
+        strategy:         s.title       || s.strategy,
+        estimatedCost:    s.estimatedCost,
+        timeToImplement:  s.timeToImplement,
+        riskReduction:    s.riskReduction,
+        feasibility:      s.feasibility || (s.difficulty === 'Low' ? 'HIGH' : s.difficulty === 'Medium' ? 'MEDIUM' : 'LOW'),
+      })),
+      cascadingEffects:   ai.cascadingEffects || base.cascadingEffects,
+      networkAnalysis:    ai.networkAnalysis,
+      confidenceScore:    ai.confidenceScore,
+      processingTime:     ai.processingTime,
+      analysisDepth:      ai.analysisDepth || 'AI_ENHANCED',
+    }
   } catch (error) {
     console.error('❌ Error triggering impact assessment:', error)
     throw error

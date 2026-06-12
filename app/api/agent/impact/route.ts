@@ -6,6 +6,7 @@ import { generateObject } from 'ai'
 import { createGoogleGenerativeAI, google } from '@ai-sdk/google'
 import { LlmAgent, Gemini, InMemoryRunner, stringifyContent } from "@google/adk"
 import { withTrace } from '../../../../lib/adk/core/trace';
+import { createHash } from 'crypto'
 import { getAIKeyForModule, AI_MODELS } from '@/lib/ai-config'
 import { z } from 'zod'
 import { supabaseServer } from '@/lib/supabase/server'
@@ -283,28 +284,28 @@ class ProductionImpactAssessmentAgent {
 SUPPLY CHAIN IMPACT ASSESSMENT ANALYSIS:
 
 Simulation Details:
-- Scenario: ${impactData.scenarioName} (${impactData.scenarioType})
+- Scenario: ${supplyChainData.simulation.name} (${supplyChainData.simulation.scenario_type})
 - Supply Chain: ${supplyChainData.supplyChain?.name || 'Unknown'}
 - Organization: ${supplyChainData.supplyChain?.organisation || 'Unknown'}
 - Analysis Date: ${new Date().toISOString()}
 
 IMPACT METRICS:
-- Total Cost Impact: ${impactData.metrics.totalCostImpact}
-- Average Delay: ${impactData.metrics.averageDelay}
-- Inventory Reduction: ${impactData.metrics.inventoryReduction}
-- Recovery Time: ${impactData.metrics.recoveryTime}
-- Affected Nodes: ${impactData.metrics.affectedNodes}
-- Network Resilience Score: ${impactData.metrics.networkResilience || 'N/A'}/100
-- Cascading Probability: ${Math.round((impactData.metrics.cascadingProbability || 0) * 100)}%
+- Total Cost Impact: ${impactData.financialImpact?.totalCostImpact || 'Unknown'}
+- Average Delay: ${impactData.operationalImpact?.averageDelay || 'Unknown'}
+- Inventory Reduction: ${impactData.operationalImpact?.inventoryReduction || 'Unknown'}
+- Recovery Time: ${impactData.operationalImpact?.recoveryTime || 'Unknown'}
+- Affected Nodes: ${impactData.operationalImpact?.affectedNodes || 'Unknown'}
+- Network Resilience Score: ${impactData.networkResilience || 'N/A'}/100
+- Cascading Probability: ${Math.round((impactData.cascadingProbability || 0) * 100)}%
 
 KEY FINDINGS:
-${impactData.keyFindings.map((finding: string) => `- ${finding}`).join('\n')}
+${(impactData.keyFindings || (impactData.executiveSummary ? [impactData.executiveSummary] : [])).map((finding: string) => `- ${finding}`).join('\n')}
 
 FINANCIAL IMPACT BREAKDOWN:
-${impactData.impactBreakdown.map((impact: string) => `- ${impact}`).join('\n')}
+${(impactData.financialImpact?.costBreakdown || []).map((c: any) => `- ${c.category}: ${c.amount} (${c.percentage}%)`).join('\n')}
 
 RISK FACTORS IDENTIFIED:
-${impactData.riskFactors.map((risk: string) => `- ${risk}`).join('\n')}
+${(impactData.riskFactors || []).map((risk: string) => `- ${risk}`).join('\n')}
 
 ${impactData.cascadingEffects && impactData.cascadingEffects.length > 0 ? 
 `CASCADING EFFECTS:
@@ -315,7 +316,7 @@ ${impactData.cascadingEffects.slice(0, 5).map((effect: any) =>
 ${impactData.mitigationStrategies && impactData.mitigationStrategies.length > 0 ? 
 `TOP MITIGATION STRATEGIES:
 ${impactData.mitigationStrategies.slice(0, 3).map((strategy: any) => 
-  `- ${strategy.strategy} (Cost: ${strategy.estimatedCost}, Timeline: ${strategy.timeToImplement})`
+  `- ${strategy.title || strategy.strategy} (Cost: ${strategy.estimatedCost}, Timeline: ${strategy.timeToImplement})`
 ).join('\n')}` : ''}
 
 ANALYSIS METADATA:
@@ -408,7 +409,7 @@ ANALYSIS METADATA:
     
     // Create a consistent hash from scenario parameters
     const hashString = JSON.stringify(hashInput, Object.keys(hashInput).sort())
-    return require('crypto').createHash('sha256').update(hashString).digest('hex').substring(0, 16)
+    return createHash('sha256').update(hashString).digest('hex').substring(0, 16)
   }
 
   // Check for similar scenario results that can be reused
@@ -472,7 +473,9 @@ ANALYSIS METADATA:
   }
 
   // Comprehensive data gathering for impact analysis
-  private async gatherSupplyChainData(simulationId: string): Promise<{
+  private async gatherSupplyChainData(
+    simulationId: string
+  ): Promise<{
     simulation: Simulation,
     supplyChain: SupplyChain,
     nodes: Node[],
@@ -500,7 +503,7 @@ ANALYSIS METADATA:
 
       if (scError) throw scError
 
-      // Fetch nodes
+      // Always fetch nodes from Supabase (source of truth)
       const { data: nodes, error: nodesError } = await supabaseServer
         .from('nodes')
         .select('*')
@@ -508,7 +511,7 @@ ANALYSIS METADATA:
 
       if (nodesError) throw nodesError
 
-      // Fetch edges
+      // Always fetch edges from Supabase (source of truth)
       const { data: edges, error: edgesError } = await supabaseServer
         .from('edges')
         .select('*')
@@ -857,9 +860,11 @@ ANALYSIS METADATA:
   }
 
   // Main method for comprehensive impact assessment
-  public async conductComprehensiveImpactAssessment(simulationId: string): Promise<any> {
+  public async conductComprehensiveImpactAssessment(
+    simulationId: string
+  ): Promise<any> {
     const startTime = Date.now()
-    console.log(`� Starting comprehensive impact assessment for simulation ${simulationId}`)
+    console.log(`🚀 Starting comprehensive impact assessment for simulation ${simulationId}`)
 
     try {
       // Check cache first
@@ -881,7 +886,7 @@ ANALYSIS METADATA:
         }
       }
 
-      // Gather comprehensive data
+      // Gather comprehensive data — always from Supabase
       const supplyChainData = await this.gatherSupplyChainData(simulationId)
       
       // Build memory context from previous assessments

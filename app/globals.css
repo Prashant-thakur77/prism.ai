@@ -296,3 +296,50 @@
     background-position: -400% 0;
   }
 }
+
+@keyframes dashdraw {
+  from {
+    stroke-dashoffset: 10;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulse-border-red {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 2px rgba(220, 38, 38, 1),
+      0 0 20px 8px rgba(220, 38, 38, 0.7),
+      0 0 40px 15px rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 2px rgba(220, 38, 38, 0.5),
+      0 0 10px 4px rgba(220, 38, 38, 0.3),
+      0 0 20px 8px rgba(220, 38, 38, 0.1);
+  }
+}
+.animate-pulse-border-red {
+  animation: pulse-border-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-color: rgba(220, 38, 38, 1) !important;
+}
+
+@keyframes pulse-border-orange {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 2px rgba(249, 115, 22, 1),
+      0 0 20px 8px rgba(249, 115, 22, 0.7),
+      0 0 40px 15px rgba(249, 115, 22, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 2px rgba(249, 115, 22, 0.5),
+      0 0 10px 4px rgba(249, 115, 22, 0.3),
+      0 0 20px 8px rgba(249, 115, 22, 0.1);
+  }
+}
+.animate-pulse-border-orange {
+  animation: pulse-border-orange 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-color: rgba(249, 115, 22, 1) !important;
+}

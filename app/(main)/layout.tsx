@@ -120,8 +120,8 @@ export default function MainLayout({
         {/* Add AI Chat Overlay */}
         {/* <AIChatOverlay /> */}
         
-        {/* Add ISCA Chat Assistant - Hide on digital twin page */}
-        {!pathname.includes('/digital-twin') && <ISCAChat />}
+        {/* Add ISCA Chat Assistant */}
+        <ISCAChat />
       </div>
   )
 }
