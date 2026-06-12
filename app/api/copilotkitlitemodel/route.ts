@@ -12,7 +12,8 @@ import { getCopilotKitConfig } from '@/lib/ai-config';
 
 export const POST = async (req: NextRequest) => {
   const { model, apiKey } = getCopilotKitConfig('lite');
-  const serviceAdapter = new GoogleGenerativeAIAdapter({ model, apiKey });
+  if (apiKey) process.env.GOOGLE_GENERATIVE_AI_API_KEY = apiKey;
+  const serviceAdapter = new GoogleGenerativeAIAdapter({ model });
   const runtime = new CopilotRuntime();
 
   const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({

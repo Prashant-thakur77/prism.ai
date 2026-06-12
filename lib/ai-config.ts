@@ -26,13 +26,13 @@
 
 export const AI_MODELS = {
   /** Main chat model – used for CopilotKit chat & primary responses */
-  chat: 'gemini-2.5-flash',
+  chat: 'gemini-1.5-flash',
   /** Lightweight chat model – used when speed/cost matters */
-  chatLite: 'gemini-2.5-flash',
+  chatLite: 'gemini-1.5-flash',
   /** Agent analysis model – used for strategy, scenario, impact, info agents */
-  agents: 'gemini-2.5-flash',
+  agents: 'gemini-1.5-flash',
   /** Suggestions model – used for background supply chain suggestions */
-  suggestions: 'gemini-2.5-flash',
+  suggestions: 'gemini-1.5-flash',
 } as const;
 
 // ─── Module Types ─────────────────────────────────────────────────────────────
