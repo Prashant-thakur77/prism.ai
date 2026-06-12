@@ -17,20 +17,17 @@ export function GlowyButton({ children, href, onClick, className, variant = "pri
   const isGhost = variant === "ghost";
 
   const buttonClasses = cn(
-    "relative inline-flex items-center justify-center font-medium rounded-xl transition-all duration-300",
-    "px-8 py-3.5",
+    "relative inline-flex items-center justify-center font-[600] text-[0.9rem] rounded-theme-md transition-all duration-300",
+    "py-[13px] px-[28px] cursor-pointer shrink-0 select-none",
     isGhost
-      ? "text-[#2563EB] bg-transparent border border-[#2563EB]/30 hover:bg-[#2563EB]/[0.06]"
-      : "text-white bg-gradient-to-r from-[#2563EB] to-[#7C3AED] shadow-[0_4px_24px_rgba(37,99,235,0.25)] hover:shadow-[0_8px_40px_rgba(37,99,235,0.4)] hover:-translate-y-0.5",
+      ? "text-theme-text-primary bg-transparent border border-theme-border-default hover:bg-theme-bg-secondary"
+      : "text-white bg-theme-blue shadow-sm hover:shadow-[0_8px_24px_rgba(39,72,232,0.25)] hover:-translate-y-[2px] active:translate-y-0 active:shadow-sm",
     className
   );
 
   const innerContent = (
     <>
       <span className="relative z-10 flex items-center gap-2">{children}</span>
-      {!isGhost && (
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#7C3AED] blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
-      )}
     </>
   );
 

@@ -1,176 +1,272 @@
 "use client"
 
-import { AlertTriangle, Clock, Gauge, TrendingUp, ArrowUpRight, ArrowDownRight, ChevronRight, Layers, RefreshCw } from "lucide-react"
-import Link from "next/link"
+import { RefreshCw } from "lucide-react"
 import { NotificationFeed } from "@/components/dashboard/notification-feed"
 import { useDashboardMetrics } from "@/components/dashboard/useDashboardMetrics"
 
 export default function DashboardPage() {
   const m = useDashboardMetrics()
+  
+  // Calculate exposure pct (e.g. "7%" from metrics or default to "0%")
+  const exposurePct = m.isLoading ? "…" : m.nodeExposurePct || "0%"
+  const exposureFillWidth = m.isLoading ? "0%" : m.nodeExposurePct || "0%"
 
   return (
-    <div className="relative min-h-full flex-1 bg-white dark:bg-black overflow-hidden text-black dark:text-white">
-      <div className="flex h-full">
+    <div className="relative min-h-full flex-1 bg-theme-bg-primary overflow-y-auto text-theme-text-primary">
+      <style dangerouslySetInnerHTML={{__html: `
+        /* TOP BAR */
+        .topbar {
+          height: 56px; background: #F6F3EE; border-bottom: 1px solid #E5DFD6;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 28px; flex-shrink: 0;
+        }
+        .topbar-left { display: flex; flex-direction: column; }
+        .topbar-title { font-size: 1.1rem; font-weight: 700; color: #18160F; letter-spacing: -0.02em; }
+        .topbar-sub { font-size: 0.75rem; color: #9C9489; }
+        .topbar-right { display: flex; align-items: center; gap: 10px; }
+        .live-pill { display: flex; align-items: center; gap: 6px; background: #EDFAF3; border: 1px solid rgba(26,127,75,0.2); border-radius: 100px; padding: 4px 12px; font-size: 0.7rem; font-weight: 700; color: #1A7F4B; }
+        .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #1A7F4B; animation: pulse-live 1.5s ease-in-out infinite; }
+        @keyframes pulse-live { 0%,100%{opacity:0.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.4)} }
 
-        {/* Left Sidebar — System Status */}
-        <aside className="w-64 shrink-0 border-r border-slate-200 dark:border-slate-800 flex flex-col divide-y divide-slate-200 dark:divide-slate-800">
-          <div className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-semibold">System Status</p>
-              {m.isLoading && (
-                <RefreshCw className="w-3 h-3 text-slate-400 animate-spin" />
-              )}
-            </div>
-            <div className="space-y-4">
-              <StatRow
-                icon={<Gauge className="w-4 h-4" />}
-                label="Exposure Index"
-                value={m.isLoading ? "…" : m.exposureIndex}
-                note={m.isLoading ? "" : m.exposureIndex === "—" ? "No data" : "avg risk score"}
-              />
-              <StatRow
-                icon={<Clock className="w-4 h-4" />}
-                label="Mean Recovery"
-                value={m.isLoading ? "…" : m.meanRecovery}
-                note={m.isLoading ? "" : m.meanRecovery === "—" ? "No data" : "lead time avg"}
-              />
-              <StatRow
-                icon={<AlertTriangle className="w-4 h-4" />}
-                label="Active Faults"
-                value={m.isLoading ? "…" : String(m.activeFaults)}
-                note={m.activeFaults === 0 ? "All clear" : `risk > 75`}
-              />
-              <StatRow
-                icon={<TrendingUp className="w-4 h-4" />}
-                label="Supply Chains"
-                value={m.isLoading ? "…" : String(m.totalSupplyChains)}
-                note={m.isLoading ? "" : `${m.totalNodes} nodes · ${m.totalEdges} edges`}
-              />
-            </div>
+        /* CONTENT AREA */
+        .content { flex: 1; display: flex; flex-direction: column; gap: 20px; padding: 24px 28px; }
+
+        /* STATS ROW */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        @media (max-width: 767px) {
+          .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+          .stats-row { grid-template-columns: 1fr; }
+        }
+        .stat-card {
+          background: #EFEBE3; border: 1px solid #E5DFD6; border-radius: 10px;
+          padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+        }
+        .stat-card-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: #9C9489; }
+        .stat-card-val { font-size: 1.7rem; font-weight: 800; color: #18160F; letter-spacing: -0.04em; line-height: 1.1; }
+        .stat-card-val.danger { color: #B91C1C; }
+        .stat-card-meta { font-size: 0.7rem; color: #9C9489; }
+        .stat-card-indicator { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+        .ind-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+        /* BODY GRID */
+        .body-grid { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+        @media (max-width: 1024px) {
+          .body-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ALERTS PANEL */
+        .panel { background: #F6F3EE; border: 1px solid #E5DFD6; border-radius: 12px; overflow: hidden; }
+        
+        /* SIDEBAR PANELS */
+        .side-panels { display: flex; flex-direction: column; gap: 16px; }
+        .mini-panel { background: #F6F3EE; border: 1px solid #E5DFD6; border-radius: 12px; overflow: hidden; }
+        .mini-panel-header { padding: 12px 14px; border-bottom: 1px solid #E5DFD6; font-size: 0.78rem; font-weight: 700; color: #18160F; }
+        .node-health-list { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+        .nh-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #E5DFD6; }
+        .nh-row:last-child { border-bottom: none; }
+        .nh-left { display: flex; align-items: center; gap: 8px; }
+        .nh-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .nh-label { font-size: 0.78rem; color: #18160F; font-weight: 500; }
+        .nh-count { font-size: 0.72rem; font-weight: 700; color: #18160F; background: #EFEBE3; border: 1px solid #E5DFD6; border-radius: 100px; padding: 1px 8px; }
+
+        /* SYSTEM STATUS */
+        .sys-status-list { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+        .sys-row { display: flex; flex-direction: column; gap: 4px; }
+        .sys-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #9C9489; }
+        .sys-val { font-size: 1.3rem; font-weight: 800; color: #18160F; letter-spacing: -0.03em; line-height: 1.1; }
+        .sys-meta { font-size: 0.65rem; color: #9C9489; }
+        .sys-divider { height: 1px; background: #E5DFD6; margin: 2px 0; }
+
+        /* EXPOSURE BAR */
+        .exposure-bar-wrap { padding: 10px 14px 14px; }
+        .exp-label-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .exp-label { font-size: 0.65rem; color: #9C9489; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; }
+        .exp-val { font-size: 0.75rem; font-weight: 700; color: #B91C1C; }
+        .exp-bar { height: 6px; background: #E5DFD6; border-radius: 100px; overflow: hidden; }
+        .exp-fill { height: 100%; background: #B91C1C; border-radius: 100px; transition: width 0.3s ease; }
+        .exp-sub { font-size: 0.62rem; color: #9C9489; margin-top: 5px; }
+
+        /* Dark Mode overrides */
+        .dark .topbar { background: #111010; border-bottom-color: #2A2825; }
+        .dark .topbar-title { color: #F0EDE7; }
+        .dark .topbar-sub { color: #6B6560; }
+        .dark .stat-card { background: #191817; border-color: #2A2825; }
+        .dark .stat-card-label { color: #6B6560; }
+        .dark .stat-card-val { color: #F0EDE7; }
+        .dark .stat-card-val.danger { color: #ef4444; }
+        .dark .stat-card-meta { color: #6B6560; }
+        .dark .panel { background: #111010; border-color: #2A2825; }
+        .dark .mini-panel { background: #111010; border-color: #2A2825; }
+        .dark .mini-panel-header { border-bottom-color: #2A2825; color: #F0EDE7; }
+        .dark .nh-row { border-bottom-color: #2A2825; }
+        .dark .nh-label { color: #F0EDE7; }
+        .dark .nh-count { background: #191817; border-color: #2A2825; color: #F0EDE7; }
+        .dark .sys-label { color: #6B6560; }
+        .dark .sys-val { color: #F0EDE7; }
+        .dark .sys-meta { color: #6B6560; }
+        .dark .sys-divider { background: #2A2825; }
+        .dark .exp-label { color: #6B6560; }
+        .dark .exp-val { color: #ef4444; }
+        .dark .exp-bar { background: #2A2825; }
+        .dark .exp-fill { background: #ef4444; }
+        .dark .exp-sub { color: #6B6560; }
+      `}} />
+
+      <div className="flex flex-col min-w-0">
+        {/* Top bar */}
+        <div className="topbar">
+          <div className="topbar-left">
+            <h1 className="topbar-title">Control Center</h1>
+            <p className="topbar-sub">Operational intelligence overview</p>
           </div>
-
-          <div className="p-5 flex-1">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-semibold mb-3">Node Health</p>
-            <div className="space-y-2">
-              <NodeHealthRow label="Origin / Suppliers" count={m.nodeHealth.originNodes} loading={m.isLoading} />
-              <NodeHealthRow label="Transit Hubs" count={m.nodeHealth.transitHubs} loading={m.isLoading} />
-              <NodeHealthRow label="Distribution" count={m.nodeHealth.distribution} loading={m.isLoading} />
-              <NodeHealthRow label="End Points" count={m.nodeHealth.endPoints} loading={m.isLoading} />
-            </div>
-
-            {m.error && (
-              <p className="mt-4 text-[10px] text-red-400 leading-snug">⚠️ {m.error}</p>
+          <div className="topbar-right">
+            {m.isLoading && (
+              <RefreshCw className="w-4 h-4 text-theme-text-muted animate-spin mr-2" />
             )}
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Top bar */}
-          <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between shrink-0">
-            <div>
-              <h1 className="text-base font-semibold tracking-tight text-black dark:text-white">Control Center</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Operational intelligence overview</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${m.isLoading ? "bg-yellow-400 animate-pulse" : "bg-green-500 animate-pulse"}`} />
-              <span className="text-xs text-slate-400">{m.isLoading ? "Loading…" : "Live"}</span>
+            <div className="live-pill">
+              <div className="live-dot"></div>
+              {m.isLoading ? "LOADING" : "LIVE"}
             </div>
           </div>
+        </div>
 
-          {/* KPI Strip */}
-          <div className="grid grid-cols-4 divide-x divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800 shrink-0">
-            <KpiBlock
-              label="Node Exposure"
-              value={m.isLoading ? "…" : m.nodeExposurePct}
-              sublabel={m.totalNodes > 0 ? `${m.totalNodes} nodes total` : undefined}
-              alert={!m.isLoading && m.nodeExposurePct !== "0%" && m.nodeExposurePct !== "—"}
-            />
-            <KpiBlock
-              label="Recovery Window"
-              value={m.isLoading ? "…" : m.recoveryWindow}
-              sublabel={m.isLoading ? undefined : m.recoveryWindow === "—" ? "No lead-time data" : "estimated range"}
-            />
-            <KpiBlock
-              label="Fault Signals"
-              value={m.isLoading ? "…" : String(m.activeFaults)}
-              sublabel={m.activeFaults === 0 ? "All clear" : "nodes risk > 75"}
-              positive={m.activeFaults === 0}
-            />
-            <KpiBlock
-              label="Supply Chains"
-              value={m.isLoading ? "…" : String(m.totalSupplyChains)}
-              sublabel={m.isLoading ? undefined : `${m.totalEdges} connections`}
-            />
+        {/* Content area */}
+        <div className="content">
+          {/* STATS ROW */}
+          <div className="stats-row">
+            {/* Card 1 */}
+            <div className="stat-card">
+              <div className="stat-card-label">Node Exposure</div>
+              <div className="stat-card-val danger">{exposurePct}</div>
+              <div className="stat-card-meta">{m.isLoading ? "…" : `${m.totalNodes} nodes total`}</div>
+              <div className="stat-card-indicator">
+                <div className="ind-dot" style={{ background: '#B91C1C' }}></div>
+                <span className="text-theme-red font-semibold text-[0.62rem]">{m.activeFaults} at risk</span>
+              </div>
+            </div>
+            {/* Card 2 */}
+            <div className="stat-card">
+              <div className="stat-card-label">Recovery Window</div>
+              <div className="stat-card-val">{m.isLoading ? "…" : m.recoveryWindow}</div>
+              <div className="stat-card-meta">estimated range</div>
+              <div className="stat-card-indicator">
+                <div className="ind-dot" style={{ background: '#B45309' }}></div>
+                <span className="text-theme-amber font-semibold text-[0.62rem]">lead time</span>
+              </div>
+            </div>
+            {/* Card 3 */}
+            <div className="stat-card">
+              <div className="stat-card-label">Fault Signals</div>
+              <div className="stat-card-val">{m.isLoading ? "…" : String(m.activeFaults)}</div>
+              <div className="stat-card-meta">nodes risk &gt; 75</div>
+              <div className="stat-card-indicator">
+                <div className="ind-dot" style={{ background: '#2748E8' }}></div>
+                <span className="text-theme-blue font-semibold text-[0.62rem]">active faults</span>
+              </div>
+            </div>
+            {/* Card 4 */}
+            <div className="stat-card">
+              <div className="stat-card-label">Supply Chains</div>
+              <div className="stat-card-val">{m.isLoading ? "…" : String(m.totalSupplyChains)}</div>
+              <div className="stat-card-meta">{m.isLoading ? "…" : `${m.totalEdges} connections`}</div>
+              <div className="stat-card-indicator">
+                <div className="ind-dot" style={{ background: '#1A7F4B' }}></div>
+                <span className="text-theme-green font-semibold text-[0.62rem]">all synced</span>
+              </div>
+            </div>
           </div>
 
-          {/* Feed area */}
-          <div className="flex-1 overflow-y-auto">
-            <NotificationFeed />
+          {/* BODY GRID */}
+          <div className="body-grid">
+            {/* Left side: Alerts Panel */}
+            <div className="panel">
+              <NotificationFeed />
+            </div>
+
+            {/* Right side: Panels */}
+            <div className="side-panels">
+              {/* System Status */}
+              <div className="mini-panel">
+                <div className="mini-panel-header">System Status</div>
+                <div className="sys-status-list">
+                  <div className="sys-row">
+                    <div className="sys-label">Exposure Index</div>
+                    <div className="sys-val">{m.isLoading ? "…" : m.exposureIndex}</div>
+                    <div className="sys-meta">avg risk score</div>
+                  </div>
+                  <div className="sys-divider"></div>
+                  <div className="sys-row">
+                    <div className="sys-label">Mean Recovery</div>
+                    <div className="sys-val">{m.isLoading ? "…" : m.meanRecovery}</div>
+                    <div className="sys-meta">lead time estimate</div>
+                  </div>
+                  <div className="sys-divider"></div>
+                  <div className="sys-row">
+                    <div className="sys-label">Active Faults</div>
+                    <div className="sys-val" style={{ color: '#B91C1C' }}>{m.isLoading ? "…" : String(m.activeFaults)}</div>
+                    <div className="sys-meta">risk score &gt; 75</div>
+                  </div>
+                  <div className="sys-divider"></div>
+                  <div className="sys-row">
+                    <div className="sys-label">Supply Chains</div>
+                    <div className="sys-val">{m.isLoading ? "…" : String(m.totalSupplyChains)}</div>
+                    <div className="sys-meta">{m.isLoading ? "…" : `${m.totalNodes} nodes monitored`}</div>
+                  </div>
+                </div>
+                <div className="exposure-bar-wrap">
+                  <div className="exp-label-row">
+                    <span className="exp-label">Network Exposure</span>
+                    <span className="exp-val">{exposurePct}</span>
+                  </div>
+                  <div className="exp-bar">
+                    <div className="exp-fill" style={{ width: exposureFillWidth }}></div>
+                  </div>
+                  <div className="exp-sub">
+                    {m.isLoading ? "…" : `${m.totalNodes} total nodes · ${m.activeFaults} exposed`}
+                  </div>
+                </div>
+              </div>
+
+              {/* Node Health */}
+              <div className="mini-panel">
+                <div className="mini-panel-header">Node Health</div>
+                <div className="node-health-list">
+                  <div className="nh-row">
+                    <div className="nh-left">
+                      <div className="nh-dot" style={{ background: '#B91C1C' }}></div>
+                      <span className="nh-label">Origin / Suppliers</span>
+                    </div>
+                    <span className="nh-count">{m.isLoading ? "…" : m.nodeHealth.originNodes}</span>
+                  </div>
+                  <div className="nh-row">
+                    <div className="nh-left">
+                      <div className="nh-dot" style={{ background: '#B45309' }}></div>
+                      <span className="nh-label">Transit Hubs</span>
+                    </div>
+                    <span className="nh-count">{m.isLoading ? "…" : m.nodeHealth.transitHubs}</span>
+                  </div>
+                  <div className="nh-row">
+                    <div className="nh-left">
+                      <div className="nh-dot" style={{ background: '#2748E8' }}></div>
+                      <span className="nh-label">Distribution</span>
+                    </div>
+                    <span className="nh-count">{m.isLoading ? "…" : m.nodeHealth.distribution}</span>
+                  </div>
+                  <div className="nh-row">
+                    <div className="nh-left">
+                      <div className="nh-dot" style={{ background: '#1A7F4B' }}></div>
+                      <span className="nh-label">End Points</span>
+                    </div>
+                    <span className="nh-count">{m.isLoading ? "…" : m.nodeHealth.endPoints}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-/* ─── Sub-components ──────────────────────────────────────────────── */
-
-function StatRow({ icon, label, value, note }: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  note: string
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="text-slate-400 mt-0.5">{icon}</span>
-      <div className="min-w-0">
-        <p className="text-[11px] text-slate-500 truncate">{label}</p>
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-semibold text-black dark:text-white">{value}</span>
-          {note && <span className="text-[10px] text-slate-400">{note}</span>}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function NodeHealthRow({ label, count, loading }: { label: string; count: number; loading: boolean }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-xs text-slate-500">{label}</span>
-      {loading ? (
-        <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-900 text-slate-400 rounded">…</span>
-      ) : (
-        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium
-          ${count > 0
-            ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
-            : "bg-slate-100 dark:bg-slate-900 text-slate-400"
-          }`}>
-          {count > 0 ? count : "–"}
-        </span>
-      )}
-    </div>
-  )
-}
-
-function KpiBlock({ label, value, sublabel, alert, positive }: {
-  label: string
-  value: string
-  sublabel?: string
-  alert?: boolean
-  positive?: boolean
-}) {
-  return (
-    <div className="px-5 py-4">
-      <p className="text-[10px] uppercase tracking-wider text-slate-400 mb-1">{label}</p>
-      <p className={`text-xl font-bold ${alert ? "text-red-500" : positive ? "text-green-600 dark:text-green-400" : "text-black dark:text-white"}`}>
-        {value}
-      </p>
-      {sublabel && (
-        <p className="text-[11px] text-slate-400 mt-0.5">{sublabel}</p>
-      )}
     </div>
   )
 }

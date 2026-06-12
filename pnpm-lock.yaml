@@ -32,7 +32,7 @@ importers:
         version: 1.9.1(@types/react@19.1.2)(encoding@0.1.13)(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@copilotkit/runtime':
         specifier: ^1.9.1
-        version: 1.9.1(9796df47d8312d04f3a4976f92f54812)
+        version: 1.9.1(b15487c81102277441b8fd2a504756a0)
       '@copilotkit/runtime-client-gql':
         specifier: ^1.9.1
         version: 1.9.1(encoding@0.1.13)(graphql@16.11.0)(react@19.1.0)
@@ -53,10 +53,7 @@ importers:
         version: 0.8.1(@cfworker/json-schema@4.1.1)(@cloudflare/workers-types@4.20250618.0)(@opentelemetry/instrumentation-nestjs-core@0.55.0(@opentelemetry/api@1.9.0))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@types/node@22.14.1)(@types/pg@8.11.0)(@upstash/redis@1.35.0)(babel-plugin-macros@3.1.0)(encoding@0.1.13)(hono@4.12.8)(knex@3.2.10(mysql2@3.20.0(@types/node@22.14.1))(pg@8.20.0)(sqlite3@5.1.7))(mysql2@3.20.0(@types/node@22.14.1))(pg@8.20.0)(sqlite3@5.1.7)(typescript@5.8.3)(ws@8.18.3)
       '@mem0/vercel-ai-provider':
         specifier: ^1.0.6
-        version: 1.0.6(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.49.4)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(pg@8.20.0)(react@19.1.0)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)(zod@3.25.67)
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.29.0
-        version: 1.29.0(@cfworker/json-schema@4.1.1)(zod@3.25.67)
+        version: 1.0.6(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.25.1(@cfworker/json-schema@4.1.1)(hono@4.12.8)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.108.1)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(react@19.1.0)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)(zod@3.25.67)
       '@radix-ui/react-accordion':
         specifier: ^1.2.2
         version: 1.2.4(@types/react-dom@19.1.2(@types/react@19.1.2))(@types/react@19.1.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -146,10 +143,10 @@ importers:
         version: 9.33.0(@opentelemetry/context-async-hooks@2.6.0(@opentelemetry/api@1.9.0))(@opentelemetry/core@2.6.0(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.209.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@2.6.0(@opentelemetry/api@1.9.0))(encoding@0.1.13)(next@16.2.4(@babel/core@7.27.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.53.1)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(webpack@5.99.9)
       '@supabase/ssr':
         specifier: ^0.6.1
-        version: 0.6.1(@supabase/supabase-js@2.49.4)
+        version: 0.6.1(@supabase/supabase-js@2.108.1)
       '@supabase/supabase-js':
         specifier: latest
-        version: 2.49.4
+        version: 2.108.1
       '@tavily/core':
         specifier: ^0.5.7
         version: 0.5.7
@@ -225,6 +222,9 @@ importers:
       graphql:
         specifier: ^16.11.0
         version: 16.11.0
+      gsap:
+        specifier: ^3.15.0
+        version: 3.15.0
       input-otp:
         specifier: 1.4.1
         version: 1.4.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -254,7 +254,7 @@ importers:
         version: 4.11.1(react@19.1.0)
       mem0ai:
         specifier: ^2.1.31
-        version: 2.1.31(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.49.4)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(pg@8.20.0)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)
+        version: 2.1.31(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.25.1(@cfworker/json-schema@4.1.1)(hono@4.12.8)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.108.1)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)
       next:
         specifier: 16.2.4
         version: 16.2.4(@babel/core@7.27.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.53.1)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -1463,6 +1463,7 @@ packages:
   '@langchain/community@0.3.47':
     resolution: {integrity: sha512-Vo42kAfkXpTFSevhEkeqqE55az8NyQgDktCbitXYuhipNbFYx08XVvqEDkFkB20MM/Z7u+cvLb+DxCqnKuH0CQ==}
     engines: {node: '>=18'}
+    deprecated: This package has been deprecated. See https://github.com/langchain-ai/langchainjs-community/issues/61 for more info
     peerDependencies:
       '@arcjet/redact': ^v1.0.0-alpha.23
       '@aws-crypto/sha256-js': ^5.0.0
@@ -4780,32 +4781,37 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@supabase/auth-js@2.69.1':
-    resolution: {integrity: sha512-FILtt5WjCNzmReeRLq5wRs3iShwmnWgBvxHfqapC/VoljJl+W8hDAyFmf1NVw3zH+ZjZ05AKxiKxVeb0HNWRMQ==}
+  '@supabase/auth-js@2.108.1':
+    resolution: {integrity: sha512-Lle5rKU8f9LF3K5dDd8Or8mkkG+ptzRZZWKPVMm9B9UuovH65Ss2+iFnQqRsCqaGouvJEcTWyl0cj2riNrrDLQ==}
+    engines: {node: '>=20.0.0'}
 
-  '@supabase/functions-js@2.4.4':
-    resolution: {integrity: sha512-WL2p6r4AXNGwop7iwvul2BvOtuJ1YQy8EbOd0dhG1oN1q8el/BIRSFCFnWAMM/vJJlHWLi4ad22sKbKr9mvjoA==}
+  '@supabase/functions-js@2.108.1':
+    resolution: {integrity: sha512-fxBRW/A4IG7ADQztVt0NaEy5ysiO1WJ2pbldsnBchrkHuyepX0Krek9qA9T4gUQBVVTCE9Ea4pdsM5hfn3nc4A==}
+    engines: {node: '>=20.0.0'}
 
-  '@supabase/node-fetch@2.6.15':
-    resolution: {integrity: sha512-1ibVeYUacxWYi9i0cf5efil6adJ9WRyZBLivgjs+AUpewx1F3xPi7gLgaASI2SmIQxPoCEjAsLAzKPgMJVgOUQ==}
-    engines: {node: 4.x || >=6.0.0}
+  '@supabase/phoenix@0.4.2':
+    resolution: {integrity: sha512-YSAGnmDAfuleFCVt3CeurQZAhxRfXWeZIIkwp7NhYzQ1UwW6ePSnzsFAiUm/mbCkfoCf70QQHKW/K6RKh52a4A==}
 
-  '@supabase/postgrest-js@1.19.4':
-    resolution: {integrity: sha512-O4soKqKtZIW3olqmbXXbKugUtByD2jPa8kL2m2c1oozAO11uCcGrRhkZL0kVxjBLrXHE0mdSkFsMj7jDSfyNpw==}
+  '@supabase/postgrest-js@2.108.1':
+    resolution: {integrity: sha512-9lj2MCPPMgSTaJ5y+amnhb3TWPtMFVlbDn2hmX/VV91xQU4j0AauwfMaBErHBJ+zzsSwjc0jLU+zLIZFLQzfig==}
+    engines: {node: '>=20.0.0'}
 
-  '@supabase/realtime-js@2.11.2':
-    resolution: {integrity: sha512-u/XeuL2Y0QEhXSoIPZZwR6wMXgB+RQbJzG9VErA3VghVt7uRfSVsjeqd7m5GhX3JR6dM/WRmLbVR8URpDWG4+w==}
+  '@supabase/realtime-js@2.108.1':
+    resolution: {integrity: sha512-mHGGqOjwd1XTydcoffUqEMsbFQHUi6A3uhQ0EXr3iqzpLqItxKA9nbN6gIQxrZ7JRRnuUe/iOFPUkYV9Tdc5lg==}
+    engines: {node: '>=20.0.0'}
 
   '@supabase/ssr@0.6.1':
     resolution: {integrity: sha512-QtQgEMvaDzr77Mk3vZ3jWg2/y+D8tExYF7vcJT+wQ8ysuvOeGGjYbZlvj5bHYsj/SpC0bihcisnwPrM4Gp5G4g==}
     peerDependencies:
       '@supabase/supabase-js': ^2.43.4
 
-  '@supabase/storage-js@2.7.1':
-    resolution: {integrity: sha512-asYHcyDR1fKqrMpytAS1zjyEfvxuOIp1CIXX7ji4lHHcJKqyk+sLl/Vxgm4sN6u8zvuUtae9e4kDxQP2qrwWBA==}
+  '@supabase/storage-js@2.108.1':
+    resolution: {integrity: sha512-Er0SGGt85iT6ye+SSh98Az6L2CesoZJuyzEZYH2oBOAnIxa9Nn4CtwUC3veGxYggoT56X+3tVuuQeDBP8kR8sg==}
+    engines: {node: '>=20.0.0'}
 
-  '@supabase/supabase-js@2.49.4':
-    resolution: {integrity: sha512-jUF0uRUmS8BKt37t01qaZ88H9yV1mbGYnqLeuFWLcdV+x1P4fl0yP9DGtaEhFPZcwSom7u16GkLEH9QJZOqOkw==}
+  '@supabase/supabase-js@2.108.1':
+    resolution: {integrity: sha512-V/1hRKLSCJ0zEL+9QFRBUtivvePfOsaAYQmC0HhFNSHC2F3xFs4jSF3YhkLmzex6E4V4FGvmBDOP72D/53NnZA==}
+    engines: {node: '>=20.0.0'}
 
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
@@ -5088,9 +5094,6 @@ packages:
   '@types/pg@8.6.1':
     resolution: {integrity: sha512-1Kc4oAGzAl7uqUStZCDvaLFqZrW9qWSjXOmBfdgyBP5La7Us6Mg4GBvRlSoaZMhQF/zSj1C8CtKMBkoiT8eL8w==}
 
-  '@types/phoenix@1.6.6':
-    resolution: {integrity: sha512-PIzZZlEppgrpoT2QgbnDU+MMzuR6BbCjllj0bM70lWoejMeNJAxCchxnv7J3XFkI8MpygtRpzXrIlmWUBclP5A==}
-
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
@@ -5170,6 +5173,7 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+    deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
   '@upstash/redis@1.35.0':
     resolution: {integrity: sha512-WUm0Jz1xN4DBDGeJIi2Y0kVsolWRB2tsVds4SExaiLg4wBdHFMB+8IfZtBWr+BP0FvhuBr5G1/VLrJ9xzIWHsg==}
@@ -5524,10 +5528,6 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
-
-  balanced-match@4.0.4:
-    resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
-    engines: {node: 18 || 20 || >=22}
 
   base-64@0.1.0:
     resolution: {integrity: sha512-Y5gU45svrR5tI2Vt/X9GPd3L0HNIKzGu202EjxrXMpuc2V2CiKgemAbUUsqYmZJvPtCXoUKjNZwBJzsNScUbXA==}
@@ -6281,10 +6281,6 @@ packages:
   digest-fetch@1.3.0:
     resolution: {integrity: sha512-CGJuv6iKNM7QyZlM2T3sPAdZWd/p9zQiRNS9G+9COUCwzWFTs0Xp8NF5iePx7wtvhDykReiRRrSeNb4oMmB8lA==}
 
-  dir-glob@3.0.1:
-    resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
-    engines: {node: '>=8'}
-
   direction@1.0.4:
     resolution: {integrity: sha512-GYqKi1aH7PJXxdhTeZBFrg8vUBeKXi+cNprXsC1kpJcbcVnV9wBsrOu1cQEdG0WeQwlfHiy3XvnKfIrJ2R0NzQ==}
     hasBin: true
@@ -6956,15 +6952,17 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@9.3.5:
     resolution: {integrity: sha512-e1LleDykUz2Iu+MTYdkSsuWX8lvAjAcs0Xef0lNIu0S2wOAzuTxCJtcd9S3cijlwYF18EsU3rzb8jPVobxDh9Q==}
     engines: {node: '>=16 || 14 >=14.17'}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globals@11.12.0:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
@@ -7049,6 +7047,9 @@ packages:
 
   groq-sdk@0.5.0:
     resolution: {integrity: sha512-RVmhW7qZ+XZoy5fIuSdx/LGQJONpL8MHgZEW7dFwTdgkzStub2XQx6OKv28CHogijdwH41J+Npj/z2jBPu3vmw==}
+
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
 
   gtoken@6.1.2:
     resolution: {integrity: sha512-4ccGpzz7YAr7lxrT2neugmXQ3hP9ho2gcaityLVkiUecAiwiy60Ii8gRbZeOsXV19fYaRjgBSshs8kXw+NKCPQ==}
@@ -7175,6 +7176,10 @@ packages:
   ibm-cloud-sdk-core@5.4.0:
     resolution: {integrity: sha512-c4cwOuUDbMiFROYM/Ti1aC+Umi1v3TdvC2DO5zR7w44FYY/3xrs79+3DVPXt/nRhJeaMHN2L9XwlXsPSoVDHJA==}
     engines: {node: '>=18'}
+
+  iceberg-js@0.8.1:
+    resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
+    engines: {node: '>=20.0.0'}
 
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
@@ -9052,6 +9057,7 @@ packages:
   recharts@2.15.2:
     resolution: {integrity: sha512-xv9lVztv3ingk7V3Jf05wfAZbM9Q2umJzu5t/cfnAK7LUslNrGT7LPBr74G+ok8kSCeFMaePmWMg0rcYOnczTw==}
     engines: {node: '>=14'}
+    deprecated: 1.x and 2.x branches are no longer active. Bump to Recharts v3 to receive latest features and bugfixes. See https://github.com/recharts/recharts/wiki/3.0-migration-guide
     peerDependencies:
       react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -9907,6 +9913,7 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@11.1.0:
@@ -9919,10 +9926,12 @@ packages:
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uvu@0.5.6:
@@ -10010,6 +10019,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-fetch@3.6.20:
     resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
@@ -11204,7 +11214,7 @@ snapshots:
       - encoding
       - graphql
 
-  '@copilotkit/runtime@1.9.1(9796df47d8312d04f3a4976f92f54812)':
+  '@copilotkit/runtime@1.9.1(b15487c81102277441b8fd2a504756a0)':
     dependencies:
       '@ag-ui/client': 0.0.28
       '@ag-ui/core': 0.0.28
@@ -11215,7 +11225,7 @@ snapshots:
       '@copilotkit/shared': 1.9.1(encoding@0.1.13)
       '@graphql-yoga/plugin-defer-stream': 3.13.5(graphql-yoga@5.13.5(graphql@16.11.0))(graphql@16.11.0)
       '@langchain/aws': 0.1.11(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))
-      '@langchain/community': 0.3.47(651247660ed9d1772a3a5264a89fe7d4)
+      '@langchain/community': 0.3.47(96dcb9101bd77cf26aac4756dae0297f)
       '@langchain/core': 0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67))
       '@langchain/google-gauth': 0.1.8(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(encoding@0.1.13)(zod@3.25.67)
       '@langchain/langgraph-sdk': 0.0.70(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(react@19.1.0)
@@ -12137,7 +12147,7 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@langchain/community@0.3.47(651247660ed9d1772a3a5264a89fe7d4)':
+  '@langchain/community@0.3.47(96dcb9101bd77cf26aac4756dae0297f)':
     dependencies:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.53.1)(deepmerge@4.3.1)(dotenv@17.3.1)(encoding@0.1.13)(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67))(zod@3.25.67)
       '@ibm-cloud/watsonx-ai': 1.6.8
@@ -12164,7 +12174,7 @@ snapshots:
       '@google-cloud/storage': 7.19.0(encoding@0.1.13)
       '@qdrant/js-client-rest': 1.13.0(typescript@5.8.3)
       '@smithy/util-utf8': 2.3.0
-      '@supabase/supabase-js': 2.49.4
+      '@supabase/supabase-js': 2.108.1
       '@upstash/redis': 1.35.0
       cheerio: 1.1.0
       fast-xml-parser: 5.5.5
@@ -12173,9 +12183,7 @@ snapshots:
       ignore: 5.3.2
       jsonwebtoken: 9.0.2
       lodash: 4.17.21
-      mariadb: 3.4.5
-      mem0ai: 2.1.31(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.49.4)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(pg@8.20.0)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)
-      mysql2: 3.20.0(@types/node@22.14.1)
+      mem0ai: 2.1.31(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.25.1(@cfworker/json-schema@4.1.1)(hono@4.12.8)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.108.1)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)
       neo4j-driver: 5.28.1
       pg: 8.20.0
       playwright: 1.53.1
@@ -12285,7 +12293,7 @@ snapshots:
     dependencies:
       '@lukeed/csprng': 1.1.0
 
-  '@mem0/vercel-ai-provider@1.0.6(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.49.4)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(pg@8.20.0)(react@19.1.0)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)(zod@3.25.67)':
+  '@mem0/vercel-ai-provider@1.0.6(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.25.1(@cfworker/json-schema@4.1.1)(hono@4.12.8)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.108.1)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(react@19.1.0)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)(zod@3.25.67)':
     dependencies:
       '@ai-sdk/anthropic': 1.1.12(zod@3.25.67)
       '@ai-sdk/cohere': 1.1.12(zod@3.25.67)
@@ -12296,7 +12304,7 @@ snapshots:
       '@ai-sdk/provider-utils': 2.1.10(zod@3.25.67)
       ai: 4.1.46(react@19.1.0)(zod@3.25.67)
       dotenv: 16.5.0
-      mem0ai: 2.1.31(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.49.4)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(pg@8.20.0)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)
+      mem0ai: 2.1.31(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.25.1(@cfworker/json-schema@4.1.1)(hono@4.12.8)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.108.1)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3)
       partial-json: 0.1.7
     optionalDependencies:
       zod: 3.25.67
@@ -16271,52 +16279,42 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@supabase/auth-js@2.69.1':
+  '@supabase/auth-js@2.108.1':
     dependencies:
-      '@supabase/node-fetch': 2.6.15
+      tslib: 2.8.1
 
-  '@supabase/functions-js@2.4.4':
+  '@supabase/functions-js@2.108.1':
     dependencies:
-      '@supabase/node-fetch': 2.6.15
+      tslib: 2.8.1
 
-  '@supabase/node-fetch@2.6.15':
-    dependencies:
-      whatwg-url: 5.0.0
+  '@supabase/phoenix@0.4.2': {}
 
-  '@supabase/postgrest-js@1.19.4':
+  '@supabase/postgrest-js@2.108.1':
     dependencies:
-      '@supabase/node-fetch': 2.6.15
+      tslib: 2.8.1
 
-  '@supabase/realtime-js@2.11.2':
+  '@supabase/realtime-js@2.108.1':
     dependencies:
-      '@supabase/node-fetch': 2.6.15
-      '@types/phoenix': 1.6.6
-      '@types/ws': 8.18.1
-      ws: 8.18.1
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
+      '@supabase/phoenix': 0.4.2
+      tslib: 2.8.1
 
-  '@supabase/ssr@0.6.1(@supabase/supabase-js@2.49.4)':
+  '@supabase/ssr@0.6.1(@supabase/supabase-js@2.108.1)':
     dependencies:
-      '@supabase/supabase-js': 2.49.4
+      '@supabase/supabase-js': 2.108.1
       cookie: 1.0.2
 
-  '@supabase/storage-js@2.7.1':
+  '@supabase/storage-js@2.108.1':
     dependencies:
-      '@supabase/node-fetch': 2.6.15
+      iceberg-js: 0.8.1
+      tslib: 2.8.1
 
-  '@supabase/supabase-js@2.49.4':
+  '@supabase/supabase-js@2.108.1':
     dependencies:
-      '@supabase/auth-js': 2.69.1
-      '@supabase/functions-js': 2.4.4
-      '@supabase/node-fetch': 2.6.15
-      '@supabase/postgrest-js': 1.19.4
-      '@supabase/realtime-js': 2.11.2
-      '@supabase/storage-js': 2.7.1
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
+      '@supabase/auth-js': 2.108.1
+      '@supabase/functions-js': 2.108.1
+      '@supabase/postgrest-js': 2.108.1
+      '@supabase/realtime-js': 2.108.1
+      '@supabase/storage-js': 2.108.1
 
   '@swc/helpers@0.5.15':
     dependencies:
@@ -16644,8 +16642,6 @@ snapshots:
       '@types/node': 22.14.1
       pg-protocol: 1.10.1
       pg-types: 2.2.0
-
-  '@types/phoenix@1.6.6': {}
 
   '@types/prop-types@15.7.15': {}
 
@@ -17096,8 +17092,6 @@ snapshots:
   bail@2.0.2: {}
 
   balanced-match@1.0.2: {}
-
-  balanced-match@4.0.4: {}
 
   base-64@0.1.0: {}
 
@@ -17855,10 +17849,6 @@ snapshots:
     dependencies:
       base-64: 0.1.0
       md5: 2.3.0
-
-  dir-glob@3.0.1:
-    dependencies:
-      path-type: 4.0.0
 
   direction@1.0.4: {}
 
@@ -18737,6 +18727,8 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+  gsap@3.15.0: {}
+
   gtoken@6.1.2(encoding@0.1.13):
     dependencies:
       gaxios: 5.1.3(encoding@0.1.13)
@@ -18961,10 +18953,12 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.13.6)
+      retry-axios: 2.6.0(axios@1.13.6(debug@4.4.3))
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
+
+  iceberg-js@0.8.1: {}
 
   iconv-lite@0.4.24:
     dependencies:
@@ -19749,7 +19743,7 @@ snapshots:
 
   media-typer@1.1.0: {}
 
-  mem0ai@2.1.31(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.49.4)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(pg@8.20.0)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3):
+  mem0ai@2.1.31(@anthropic-ai/sdk@0.61.0)(@cloudflare/workers-types@4.20250618.0)(@google/genai@1.45.0(@modelcontextprotocol/sdk@1.25.1(@cfworker/json-schema@4.1.1)(hono@4.12.8)(zod@3.25.67)))(@langchain/core@0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67)))(@mistralai/mistralai@1.7.2(zod@3.25.67))(@qdrant/js-client-rest@1.13.0(typescript@5.8.3))(@supabase/supabase-js@2.108.1)(@types/jest@29.5.14)(@types/pg@8.11.0)(@types/sqlite3@3.1.11)(cloudflare@4.4.1(encoding@0.1.13))(encoding@0.1.13)(groq-sdk@0.3.0(encoding@0.1.13))(neo4j-driver@5.28.1)(ollama@0.5.16)(redis@4.7.1)(sqlite3@5.1.7)(ws@8.18.3):
     dependencies:
       '@anthropic-ai/sdk': 0.61.0
       '@cloudflare/workers-types': 4.20250618.0
@@ -19757,7 +19751,7 @@ snapshots:
       '@langchain/core': 0.3.59(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.67))
       '@mistralai/mistralai': 1.7.2(zod@3.25.67)
       '@qdrant/js-client-rest': 1.13.0(typescript@5.8.3)
-      '@supabase/supabase-js': 2.49.4
+      '@supabase/supabase-js': 2.108.1
       '@types/jest': 29.5.14
       '@types/pg': 8.11.0
       '@types/sqlite3': 3.1.11
@@ -21395,7 +21389,7 @@ snapshots:
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 
-  retry-axios@2.6.0(axios@1.13.6):
+  retry-axios@2.6.0(axios@1.13.6(debug@4.4.3)):
     dependencies:
       axios: 1.13.6(debug@4.4.3)
 

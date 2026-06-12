@@ -22,7 +22,7 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-poppins)", ...fontFamily.sans],
+        sans: ["var(--font-inter)", ...fontFamily.sans],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -78,11 +78,49 @@ const config = {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+        theme: {
+          bg: {
+            primary: "var(--bg-primary)",
+            secondary: "var(--bg-secondary)",
+            surface: "var(--bg-surface)",
+            glass: "var(--bg-glass)",
+          },
+          border: {
+            subtle: "var(--border-subtle)",
+            default: "var(--border-default)",
+          },
+          text: {
+            primary: "var(--text-primary)",
+            secondary: "var(--text-secondary)",
+            muted: "var(--text-muted)",
+          },
+          blue: {
+            DEFAULT: "var(--accent-blue)",
+            soft: "var(--accent-blue-soft)",
+            hover: "var(--accent-blue-hover)",
+          },
+          green: {
+            DEFAULT: "var(--accent-green)",
+            soft: "var(--accent-green-soft)",
+          },
+          amber: {
+            DEFAULT: "var(--accent-amber)",
+            soft: "var(--accent-amber-soft)",
+          },
+          red: {
+            DEFAULT: "var(--accent-red)",
+            soft: "var(--accent-red-soft)",
+          }
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "theme-sm": "var(--radius-sm)",
+        "theme-md": "var(--radius-md)",
+        "theme-lg": "var(--radius-lg)",
+        "theme-pill": "var(--radius-pill)",
       },
       keyframes: {
         "accordion-down": {

@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/theme"
 import SessionProvider from "@/lib/context/SessionProvider";
 import { Toaster } from "@/components/ui/sonner"
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { Poppins } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { CopilotProvider } from "@/components/copilot/copilot-provider";
 import "@copilotkit/react-textarea/styles.css";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -21,16 +21,16 @@ export const metadata: Metadata = {
 }
 
 
-const poppins = Poppins({
+const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-poppins',
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-inter',
 })
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`dark ${poppins.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`dark ${inter.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="shortcut icon" href="/favicon.svg" />

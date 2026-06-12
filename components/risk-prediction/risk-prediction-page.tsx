@@ -15,7 +15,8 @@ import {
   Server,
   ServerOff,
   Database,
-  Network
+  Network,
+  ChevronDown
 } from "lucide-react"
 import { RiskGauge } from "./risk-gauge"
 import { FactorBars } from "./factor-bars"
@@ -54,7 +55,6 @@ interface FormOptions {
   days_scheduled: number[]
 }
 
-/* ───── Default order payload ───── */
 const DEFAULT_ORDER = {
   Type: "DEBIT",
   shipping_mode: "Standard Class",
@@ -86,7 +86,6 @@ const DEFAULT_ORDER = {
   order_state: "IL",
 }
 
-/* ════════════════════════════════════════════════════════════════ */
 export default function RiskPredictionPage() {
   const [meta, setMeta] = useState<ModelMeta | null>(null)
   const [options, setOptions] = useState<FormOptions | null>(null)
@@ -97,11 +96,9 @@ export default function RiskPredictionPage() {
   const [form, setForm] = useState(DEFAULT_ORDER)
   const [error, setError] = useState<string | null>(null)
   
-  // Digital Twin state integration
   const [supplyChains, setSupplyChains] = useState<any[]>([])
   const [selectedChainId, setSelectedChainId] = useState<string>('')
 
-  /* Fetch user's Digital Twins (Supply Chains) */
   const fetchSupplyChains = useCallback(async () => {
     try {
       const { data } = await supabaseClient
@@ -118,7 +115,6 @@ export default function RiskPredictionPage() {
     fetchSupplyChains();
   }, [fetchSupplyChains]);
 
-  // Auto-map selected digital twin features into ML Form
   useEffect(() => {
     if (!selectedChainId) return;
     const sc = supplyChains.find(s => s.supply_chain_id === selectedChainId);
@@ -129,7 +125,6 @@ export default function RiskPredictionPage() {
     
     if (!options) return;
     
-    // Map specific supply chain templates naturally to the dataset options
     if (name.includes("lpg") || name.includes("iran") || name.includes("energy")) {
        newForm.shipping_mode = options.shipping_mode?.includes("Standard Class") ? "Standard Class" : options.shipping_mode[0];
        newForm.days_scheduled = 5;
@@ -142,11 +137,9 @@ export default function RiskPredictionPage() {
        newForm.sales_per_customer = 25000;
        newForm.order_status = options.order_status?.includes("PENDING") ? "PENDING" : options.order_status[0];
     } else {
-       // GENERIC DATA MAPPING BASED ON THE DIGITAL TWIN ITSELF
        const fd = sc.form_data || {};
        newForm.product_name = sc.name;
        
-       // Handle Industry -> Product mappings (clamp to valid ML options)
        const industry = ((fd.industry || "") as string).toLowerCase();
        const customInd = ((fd.customIndustry || "") as string).toLowerCase();
        const fullInd = industry + " " + customInd;
@@ -160,7 +153,7 @@ export default function RiskPredictionPage() {
          newForm.category_name = options?.category_name?.includes("Medical") ? "Medical" : (options?.category_name?.[0] || "Clothing");
          newForm.order_item_product_price = 120.0; 
        } else if (fullInd.includes("food") || fullInd.includes("agri")) {
-         newForm.department_name = options?.department_name?.includes("Book Shop") ? "Book Shop" : (options?.department_name?.[0] || "Fan Shop"); // DataCo doesn't have food
+         newForm.department_name = options?.department_name?.includes("Book Shop") ? "Book Shop" : (options?.department_name?.[0] || "Fan Shop");
          newForm.category_name = options?.category_name?.includes("Books ") ? "Books " : (options?.category_name?.[0] || "Clothing");
          newForm.order_item_product_price = 45.0;
        } else if (fullInd.includes("auto") || fullInd.includes("vehicle")) {
@@ -173,7 +166,6 @@ export default function RiskPredictionPage() {
          newForm.order_item_product_price = 100.0;
        }
 
-       // Handle Shipping Methods -> Mode & Days
        const shipMethods = fd.shippingMethods || [];
        const shipStr = Array.isArray(shipMethods) ? shipMethods.join(" ").toLowerCase() : String(shipMethods).toLowerCase();
        
@@ -190,16 +182,14 @@ export default function RiskPredictionPage() {
          newForm.shipping_mode = "Standard Class";
        }
 
-       // Handle Risks -> Status/Delays
        const risks = Array.isArray(fd.risks) ? fd.risks : [];
        if (risks.length >= 3) {
          newForm.order_status = options?.order_status?.includes("PENDING") ? "PENDING" : "COMPLETE";
-         newForm.days_scheduled += 2; // Increase scheduled days to buffer complex risks
+         newForm.days_scheduled += 2;
        } else {
          newForm.order_status = options?.order_status?.includes("COMPLETE") ? "COMPLETE" : "COMPLETE";
        }
 
-       // Handle Region / Market
        const regionStr = String(fd.operationsLocation || "").toLowerCase() + " " + String(fd.country || "").toLowerCase();
        if (regionStr.includes("us") || regionStr.includes("america") || regionStr.includes("canada")) {
          newForm.market = "USCA";
@@ -215,16 +205,14 @@ export default function RiskPredictionPage() {
          newForm.order_region = "East of USA";
        }
 
-       // Financials baseline mappings
        const vol = Number(fd.annualVolumeValue) || 1000;
        newForm.benefit_per_order = vol > 50000 ? 500 : 50;
        newForm.sales_per_customer = newForm.order_item_product_price * (newForm.order_item_quantity || 1) * 1.5;
-    }
+     }
     
     setForm(newForm);
   }, [selectedChainId, supplyChains, options]);
 
-  /* Fetch model meta + options on mount */
   const fetchMeta = useCallback(async () => {
     setLoading(true)
     try {
@@ -243,7 +231,6 @@ export default function RiskPredictionPage() {
 
   useEffect(() => { fetchMeta() }, [fetchMeta])
 
-  /* ── Predict ── */
   const handlePredict = async () => {
     setPredicting(true)
     setError(null)
@@ -266,27 +253,25 @@ export default function RiskPredictionPage() {
     }
   }
 
-  /* ── Field updater ── */
   const setField = (k: string, v: string | number) =>
     setForm((prev) => ({ ...prev, [k]: v }))
 
-  /* ═══════════════════════ RENDER ═══════════════════════ */
   return (
-    <div className="relative min-h-full flex-1 bg-white dark:bg-black overflow-y-auto text-black dark:text-white">
+    <div className="relative min-h-full flex-1 bg-theme-bg-primary overflow-y-auto text-theme-text-primary">
       {/* Header */}
-      <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="border-b border-theme-border-subtle bg-theme-bg-surface/50 backdrop-blur-[8px] px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="absolute inset-0 bg-orange-500/20 rounded-xl blur-sm" />
-            <div className="relative bg-gradient-to-br from-orange-500 to-amber-600 p-2 rounded-xl shadow-sm">
+            <div className="absolute inset-0 bg-theme-amber/20 rounded-xl blur-sm" />
+            <div className="relative bg-gradient-to-br from-theme-amber to-theme-amber/90 p-2 rounded-theme-md shadow-sm">
               <Brain className="h-5 w-5 text-white" />
             </div>
           </div>
           <div>
-            <h1 className="text-base font-semibold tracking-tight">
+            <h1 className="text-base font-bold tracking-tight text-theme-text-primary">
               Supply Chain Risk Prediction
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-theme-text-secondary mt-0.5">
               XGBoost ML Model — Delivery risk classification
             </p>
           </div>
@@ -295,18 +280,18 @@ export default function RiskPredictionPage() {
         {/* API Status badge */}
         <div className="flex items-center gap-2">
           {apiOnline === null ? (
-            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+            <Loader2 className="w-4 h-4 animate-spin text-theme-text-muted" />
           ) : apiOnline ? (
             <>
-              <Server className="w-4 h-4 text-emerald-500" />
-              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              <Server className="w-4 h-4 text-theme-green" />
+              <span className="text-xs text-theme-green font-[600]">
                 Model Online
               </span>
             </>
           ) : (
             <>
-              <ServerOff className="w-4 h-4 text-red-500" />
-              <span className="text-xs text-red-500 font-medium">
+              <ServerOff className="w-4 h-4 text-theme-red animate-pulse" />
+              <span className="text-xs text-theme-red font-[600]">
                 FastAPI Offline
               </span>
             </>
@@ -314,53 +299,53 @@ export default function RiskPredictionPage() {
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-6 max-w-7xl mx-auto">
         {/* Model Overview Cards */}
         {meta && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8"
+            className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6"
           >
             <MetricCard
               icon={<Crosshair className="w-4 h-4" />}
               label="ROC-AUC"
               value={meta.metrics.test.roc_auc.toFixed(3)}
-              color="text-blue-500"
+              color="text-theme-blue"
             />
             <MetricCard
               icon={<TrendingUp className="w-4 h-4" />}
               label="Accuracy"
               value={`${(meta.metrics.test.accuracy * 100).toFixed(1)}%`}
-              color="text-emerald-500"
+              color="text-theme-green"
             />
             <MetricCard
               icon={<BarChart3 className="w-4 h-4" />}
               label="Features"
               value={String(meta.n_features)}
-              color="text-violet-500"
+              color="text-purple-500"
             />
             <MetricCard
               icon={<Zap className="w-4 h-4" />}
               label="Training Rows"
               value={meta.training_rows.toLocaleString()}
-              color="text-amber-500"
+              color="text-theme-amber"
             />
           </motion.div>
         )}
 
         {/* Main Grid: Form + Results */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* ── LEFT: Prediction Form (3 cols) ── */}
+          {/* LEFT: Prediction Form (3 cols) */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="lg:col-span-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm p-6"
+            className="lg:col-span-3 rounded-theme-lg border border-theme-border-subtle bg-theme-bg-surface p-6 shadow-sm flex flex-col"
           >
-            {/* Digital Twin Selector integration */}
-            <div className="mb-6 p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 dark:bg-blue-500/10">
-              <h2 className="text-sm font-semibold mb-3 flex items-center gap-2 text-blue-700 dark:text-blue-400">
+            {/* Digital Twin Selector */}
+            <div className="mb-6 p-4 rounded-theme-md border border-theme-blue/20 bg-theme-blue-soft/50">
+              <h2 className="text-sm font-bold mb-3 flex items-center gap-2 text-theme-blue">
                 <Network className="w-4 h-4" />
                 Select Digital Twin Data Source
               </h2>
@@ -368,7 +353,7 @@ export default function RiskPredictionPage() {
                 <select
                   value={selectedChainId}
                   onChange={(e) => setSelectedChainId(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer"
+                  className="w-full rounded-theme-md border border-theme-border-subtle bg-theme-bg-surface text-theme-text-primary px-3 py-2.5 text-xs font-[600] focus:outline-none focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue transition-all duration-200 appearance-none cursor-pointer"
                 >
                   <option value="">— Use Default Synthetic Data —</option>
                   {supplyChains.map((sc) => (
@@ -377,17 +362,17 @@ export default function RiskPredictionPage() {
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-theme-text-muted">
                   <Database className="w-4 h-4 opacity-50" />
                 </div>
               </div>
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-2.5 text-xs text-theme-text-secondary">
                 Selecting a twin will auto-map its attributes and network features to the ML dataset schema below.
               </p>
             </div>
 
-            <h2 className="text-sm font-semibold mb-5 flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-              <Zap className="w-4 h-4 text-orange-500" />
+            <h2 className="text-sm font-bold mb-5 flex items-center gap-2 pt-2 border-t border-theme-border-subtle/50 text-theme-text-primary">
+              <Zap className="w-4 h-4 text-theme-amber" />
               Order Parameters Filter
             </h2>
 
@@ -489,14 +474,14 @@ export default function RiskPredictionPage() {
 
             {/* Product name */}
             <div className="mt-4">
-              <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-theme-text-muted mb-1.5">
                 Product Name
               </label>
               <input
                 type="text"
                 value={form.product_name}
                 onChange={(e) => setField("product_name", e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                className="w-full rounded-theme-md border border-theme-border-subtle bg-theme-bg-surface text-theme-text-primary px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue transition-all duration-200"
               />
             </div>
 
@@ -506,7 +491,7 @@ export default function RiskPredictionPage() {
               whileTap={{ scale: 0.98 }}
               onClick={handlePredict}
               disabled={predicting || !apiOnline}
-              className="mt-6 w-full relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-6 w-full relative inline-flex items-center justify-center gap-2 rounded-theme-md bg-theme-text-primary hover:bg-theme-text-primary/95 px-6 py-3 text-xs font-bold uppercase tracking-[0.05em] text-theme-bg-primary shadow-sm hover:shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-none outline-none focus:outline-none"
             >
               {predicting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -520,7 +505,7 @@ export default function RiskPredictionPage() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm flex items-center gap-2"
+                className="mt-4 p-3 rounded-theme-md bg-theme-red/10 border border-theme-red/20 text-theme-red text-xs flex items-center gap-2"
               >
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 {error}
@@ -528,15 +513,15 @@ export default function RiskPredictionPage() {
             )}
           </motion.div>
 
-          {/* ── RIGHT: Results Panel (2 cols) ── */}
+          {/* RIGHT: Results Panel (2 cols) */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="lg:col-span-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm p-6 flex flex-col items-center"
+            className="lg:col-span-2 rounded-theme-lg border border-theme-border-subtle bg-theme-bg-surface p-6 flex flex-col items-center shadow-sm"
           >
-            <h2 className="text-sm font-semibold mb-6 flex items-center gap-2 self-start">
-              <ShieldCheck className="w-4 h-4 text-orange-500" />
+            <h2 className="text-sm font-bold mb-6 flex items-center gap-2 self-start text-theme-text-primary">
+              <ShieldCheck className="w-4 h-4 text-theme-green" />
               Prediction Result
             </h2>
 
@@ -555,7 +540,7 @@ export default function RiskPredictionPage() {
                     confidence={result.confidence}
                   />
 
-                  <div className="w-full border-t border-slate-200 dark:border-slate-800 pt-6">
+                  <div className="w-full border-t border-theme-border-subtle/50 pt-6">
                     <FactorBars factors={result.top_factors} />
                   </div>
                 </motion.div>
@@ -564,11 +549,11 @@ export default function RiskPredictionPage() {
                   key="empty"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex-1 flex flex-col items-center justify-center text-center py-16 text-slate-400"
+                  className="flex-1 flex flex-col items-center justify-center text-center py-16 text-theme-text-muted/60"
                 >
                   <Brain className="w-16 h-16 mb-4 opacity-20" />
-                  <p className="text-sm font-medium">No prediction yet</p>
-                  <p className="text-xs mt-1">
+                  <p className="text-sm font-bold text-theme-text-primary">No prediction yet</p>
+                  <p className="text-xs mt-1 text-theme-text-secondary">
                     Fill in the order details and click predict
                   </p>
                 </motion.div>
@@ -595,14 +580,14 @@ function MetricCard({
   color: string
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col gap-2">
+    <div className="rounded-theme-md border border-theme-border-subtle bg-theme-bg-surface p-4 flex flex-col gap-2 shadow-sm">
       <div className="flex items-center gap-2">
         <span className={color}>{icon}</span>
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+        <span className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted">
           {label}
         </span>
       </div>
-      <span className="text-2xl font-extrabold tracking-tight">{value}</span>
+      <span className="text-2xl font-extrabold tracking-tight text-theme-text-primary">{value}</span>
     </div>
   )
 }
@@ -620,20 +605,25 @@ function SelectField({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-theme-text-muted mb-1.5">
         {label}
       </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 appearance-none cursor-pointer"
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full rounded-theme-md border border-theme-border-subtle bg-theme-bg-surface text-theme-text-primary px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue transition-all duration-200 appearance-none cursor-pointer"
+        >
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-theme-text-muted">
+          <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+        </div>
+      </div>
     </div>
   )
 }
@@ -655,7 +645,7 @@ function NumberField({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-theme-text-muted mb-1.5">
         {label}
       </label>
       <input
@@ -665,7 +655,7 @@ function NumberField({
         min={min}
         max={max}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+        className="w-full rounded-theme-md border border-theme-border-subtle bg-theme-bg-surface text-theme-text-primary px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue transition-all duration-200"
       />
     </div>
   )

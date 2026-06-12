@@ -398,8 +398,8 @@ export default function AgentTelemetryDashboard({
                       <SelectItem value="all">
                         <span className="text-slate-500 dark:text-slate-400">All Nodes</span>
                       </SelectItem>
-                      {availableNodes.map((node) => (
-                        <SelectItem key={node.id} value={node.id}>
+                      {availableNodes.map((node, index) => (
+                        <SelectItem key={node.id || `node-${index}`} value={node.id}>
                           <div className="flex items-center gap-2">
                             <Zap className="h-3 w-3" />
                             <span>{node.name}</span>

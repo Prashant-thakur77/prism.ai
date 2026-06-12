@@ -427,15 +427,15 @@ export function NotificationDropdown() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="relative">
+                <button className="w-8 h-8 flex items-center justify-center rounded-full cursor-pointer bg-theme-bg-secondary border border-theme-border-subtle hover:bg-theme-bg-secondary/80 text-theme-text-primary transition-all duration-200 shrink-0 relative focus:outline-none focus:ring-2 focus:ring-theme-blue/50">
                     <BellIcon size={16} />
                     {unreadCount > 0 && (
-                        <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
+                        <span className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[9px] font-[700] bg-theme-blue text-white rounded-full">
                             {unreadCount > 99 ? '99+' : unreadCount}
-                        </Badge>
+                        </span>
                     )}
                     <span className="sr-only">Notifications</span>
-                </Button>
+                </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[32rem] bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800" asChild>
                 <motion.div
@@ -466,7 +466,7 @@ export function NotificationDropdown() {
                     <DropdownMenuSeparator />
                     <div className="max-h-96 overflow-auto">
                         {notifications.length > 0 ? (
-                            notifications.map(n => <NotificationItem key={n.notification_id} notification={n} onMarkAsRead={handleMarkAsRead} />)
+                            notifications.map((n, index) => <NotificationItem key={n.notification_id || index} notification={n} onMarkAsRead={handleMarkAsRead} />)
                         ) : (
                             <motion.div variants={dropdownItem}>
                                 <DropdownMenuItem disabled>

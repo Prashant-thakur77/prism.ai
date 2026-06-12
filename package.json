@@ -83,6 +83,7 @@
     "exceljs": "^4.4.0",
     "framer-motion": "^12.7.3",
     "graphql": "^16.11.0",
+    "gsap": "^3.15.0",
     "input-otp": "1.4.1",
     "js-cookie": "^3.0.5",
     "leaflet": "^1.9.4",
@@ -142,10 +143,5 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
   },
-  "pnpm": {
-    "overrides": {
-      "import-in-the-middle": "1.15.0",
-      "zod": "3.25.67"
-    }
-  }
+  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
 }

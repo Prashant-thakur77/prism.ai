@@ -3,6 +3,16 @@ import ogs from "open-graph-scraper"
 
 export const dynamic = "force-dynamic"
 
+// In-memory cache to prevent redundant external scraping calls
+interface CacheEntry {
+    data: any
+    timestamp: number
+    isSuccess: boolean
+}
+const metadataCache = new Map<string, CacheEntry>()
+const CACHE_TTL_SUCCESS = 30 * 60 * 1000 // 30 minutes
+const CACHE_TTL_FAIL = 5 * 60 * 1000 // 5 minutes
+
 /**
  * API route that fetches Open Graph metadata from a URL.
  * Falls back to null data (200 OK) if the site blocks scrapers or times out.
@@ -30,22 +40,41 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Invalid URL format" }, { status: 400 })
         }
 
+        // Check cache first
+        const cached = metadataCache.get(link)
+        if (cached) {
+            const age = Date.now() - cached.timestamp
+            const ttl = cached.isSuccess ? CACHE_TTL_SUCCESS : CACHE_TTL_FAIL
+            if (age < ttl) {
+                return NextResponse.json(cached.data)
+            }
+        }
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => {
+            controller.abort()
+        }, 4000) // strict 4-second timeout limit
+
         try {
             const { error: ogsError, result } = await ogs({
                 url: link,
-                timeout: 5000, // 5 second timeout
                 fetchOptions: {
+                    signal: controller.signal,
                     headers: {
-                        // Mimic a browser to reduce bot-blocking
-                        'User-Agent': 'Mozilla/5.0 (compatible; Prism/1.0; +https://prism.ai)',
-                        'Accept': 'text/html,application/xhtml+xml',
+                        // Standard Chrome User-Agent on Windows to bypass bot-blocking (e.g. 403 Forbidden)
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
                     },
                 },
             })
+            clearTimeout(timeoutId)
 
             // OGS returns error:true when it can't fetch — return null data gracefully
             if (ogsError || !result) {
-                return NextResponse.json({
+                const failData = {
                     title: null,
                     description: null,
                     image: null,
@@ -53,7 +82,9 @@ export async function GET(req: NextRequest) {
                     url: link,
                     favicon: null,
                     success: false,
-                })
+                }
+                metadataCache.set(link, { data: failData, timestamp: Date.now(), isSuccess: false })
+                return NextResponse.json(failData)
             }
 
             const {
@@ -69,7 +100,7 @@ export async function GET(req: NextRequest) {
                 return imageData.url || null
             }
 
-            return NextResponse.json({
+            const successData = {
                 title: ogTitle || twitterTitle || null,
                 description: ogDescription || twitterDescription || null,
                 image: getImageUrl(ogImage) || getImageUrl(twitterImage) || null,
@@ -81,12 +112,17 @@ export async function GET(req: NextRequest) {
                 author: articleAuthor || dcCreator || null,
                 twitterCard: twitterCard || null,
                 success: success || false,
-            })
+            }
+
+            metadataCache.set(link, { data: successData, timestamp: Date.now(), isSuccess: true })
+            return NextResponse.json(successData)
 
         } catch (ogsErr: any) {
-            // Network error, timeout, ECONNREFUSED, etc. — degrade gracefully
-            console.warn(`[getmetaData] Failed to fetch OG data for ${link}:`, ogsErr?.message || ogsErr)
-            return NextResponse.json({
+            clearTimeout(timeoutId)
+            const isAbort = ogsErr?.name === 'AbortError' || ogsErr?.message?.includes('aborted')
+            console.warn(`[getmetaData] Failed to fetch OG data for ${link}:`, isAbort ? 'Request timed out (4s limit)' : (ogsErr?.message || ogsErr))
+
+            const failData = {
                 title: null,
                 description: null,
                 image: null,
@@ -94,7 +130,9 @@ export async function GET(req: NextRequest) {
                 url: link,
                 favicon: null,
                 success: false,
-            })
+            }
+            metadataCache.set(link, { data: failData, timestamp: Date.now(), isSuccess: false })
+            return NextResponse.json(failData)
         }
 
     } catch (err: any) {
@@ -102,3 +140,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Server error fetching metadata" }, { status: 500 })
     }
 }
+

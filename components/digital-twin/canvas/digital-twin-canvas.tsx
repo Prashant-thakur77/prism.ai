@@ -223,10 +223,10 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges, viewOnly
         <ControlTowerPanel />
 
         <div 
-          className={`flex-1 h-full ${viewOnly ? '' : 'border-2'} transition-all duration-200 relative ${
+          className={`flex-1 h-full ${viewOnly ? '' : 'border-l'} transition-all duration-200 relative ${
             isDragOver 
-              ? 'border-blue-400 border-dashed bg-blue-50/30 dark:bg-blue-900/20' 
-              : viewOnly ? '' : 'border-gray-200 dark:border-gray-700'
+              ? 'border-theme-blue bg-theme-bg-secondary/80' 
+              : viewOnly ? '' : 'border-theme-border-subtle bg-theme-bg-secondary'
           }`}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
@@ -234,8 +234,8 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges, viewOnly
         >
           {isDragOver && (
             <div className="absolute inset-0 z-10 pointer-events-none">
-              <div className="absolute inset-4 border-2 border-dashed border-blue-400 rounded-lg bg-blue-50/50 dark:bg-blue-900/30 flex items-center justify-center">
-                <div className="text-blue-600 dark:text-blue-400 text-lg font-medium bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-lg shadow-lg border border-blue-300 dark:border-blue-600">
+              <div className="absolute inset-4 border-2 border-dashed border-theme-blue rounded-theme-lg bg-theme-bg-secondary/90 flex items-center justify-center">
+                <div className="text-theme-blue text-sm font-semibold bg-theme-bg-surface px-4 py-2 rounded-theme-md shadow-sm border border-theme-border-subtle">
                   Drop here to add node
                 </div>
               </div>
@@ -301,9 +301,9 @@ export default function DigitalTwinCanvas({ initialNodes, initialEdges, viewOnly
             nodesDraggable={!viewOnly && !isControlTowerMode}
             nodesConnectable={!viewOnly && !isControlTowerMode}
           >
-            <Controls />
-            <MiniMap />
-            <Background />
+            <Controls className="bg-theme-bg-surface border-theme-border-subtle text-theme-text-primary" />
+            <MiniMap className="bg-theme-bg-surface border-theme-border-subtle" nodeColor="var(--accent-blue)" maskColor="var(--bg-glass)" />
+            <Background variant="dots" gap={24} size={1} color="var(--border-default)" className="bg-theme-bg-primary" />
           </ReactFlow>
         </div>
 

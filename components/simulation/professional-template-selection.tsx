@@ -41,8 +41,8 @@ function MinimalCard({
   return (
     <Card 
       className={cn(
-        "border border-slate-200 dark:border-slate-800 bg-white dark:bg-black shadow-sm rounded-xl transition-all duration-300",
-        hover && "hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 hover:scale-[1.02] cursor-pointer",
+        "border border-theme-border-subtle bg-theme-bg-surface text-theme-text-primary shadow-sm rounded-theme-lg transition-all duration-300 relative overflow-hidden",
+        hover && "hover:-translate-y-1.5 hover:shadow-md hover:border-t-2 hover:border-t-theme-blue cursor-pointer",
         className
       )} 
       {...props}
@@ -322,20 +322,20 @@ export function ProfessionalTemplateSelection({
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
-      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
+      case 'low': return 'bg-[#3B7A57]/10 text-[#3B7A57] border border-[#3B7A57]/20 font-bold'
+      case 'medium': return 'bg-[#E6AD12]/10 text-[#E6AD12] border border-[#E6AD12]/20 font-bold'
+      case 'high': return 'bg-[#D95D39]/10 text-[#D95D39] border border-[#D95D39]/20 font-bold'
+      case 'critical': return 'bg-[#D95D39]/20 text-[#D95D39] border border-[#D95D39]/30 font-bold'
+      default: return 'bg-[#A09A94]/10 text-[#6B6560] border border-[#E8E3DC] font-bold'
     }
   }
 
   const getComplexityColor = (complexity: string) => {
     switch (complexity) {
-      case 'simple': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-      case 'moderate': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
-      case 'complex': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
+      case 'simple': return 'bg-[#2B4FE8]/10 text-[#2B4FE8] border border-[#2B4FE8]/20 font-bold'
+      case 'moderate': return 'bg-[#9A348E]/10 text-[#9A348E] border border-[#9A348E]/20 font-bold'
+      case 'complex': return 'bg-[#4B0082]/10 text-[#4B0082] border border-[#4B0082]/20 font-bold'
+      default: return 'bg-[#A09A94]/10 text-[#6B6560] border border-[#E8E3DC] font-bold'
     }
   }
 
@@ -380,25 +380,25 @@ export function ProfessionalTemplateSelection({
       {/* Two Action Cards — AI Scenarios + Custom Scenario */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <MinimalCard className="group hover:scale-[1.02] transition-all duration-200" onClick={onAIScenarios}>
+        <MinimalCard className="group transition-all duration-300" onClick={onAIScenarios}>
           <CardHeader className="text-center pb-6">
-            <div className="mx-auto w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center mb-3 group-hover:bg-black dark:group-hover:bg-white transition-all">
-              <Sparkles className="w-6 h-6 text-black dark:text-white group-hover:text-white dark:group-hover:text-black transition-colors" />
+            <div className="mx-auto w-14 h-14 bg-theme-blue-soft border border-theme-blue/10 rounded-theme-md flex items-center justify-center mb-3 group-hover:bg-theme-blue group-hover:border-theme-blue transition-all duration-300 shadow-sm">
+              <Sparkles className="w-6 h-6 text-theme-blue group-hover:text-white transition-colors duration-300" />
             </div>
-            <CardTitle className="text-lg font-semibold">AI Vector Generator</CardTitle>
-            <CardDescription className="text-sm text-slate-500 dark:text-slate-400">
+            <CardTitle className="text-lg font-semibold text-theme-text-primary">AI Vector Generator</CardTitle>
+            <CardDescription className="text-sm text-theme-text-secondary">
               Generate intelligent fault scenarios tailored to your network topology using AI.
             </CardDescription>
           </CardHeader>
         </MinimalCard>
 
-        <MinimalCard className="group hover:scale-[1.02] transition-all duration-200" onClick={onStartFromScratch}>
+        <MinimalCard className="group transition-all duration-300" onClick={onStartFromScratch}>
           <CardHeader className="text-center pb-6">
-            <div className="mx-auto w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center mb-3 group-hover:bg-black dark:group-hover:bg-white transition-all">
-              <Plus className="w-6 h-6 text-black dark:text-white group-hover:text-white dark:group-hover:text-black transition-colors" />
+            <div className="mx-auto w-14 h-14 bg-theme-blue-soft border border-theme-blue/10 rounded-theme-md flex items-center justify-center mb-3 group-hover:bg-theme-blue group-hover:border-theme-blue transition-all duration-300 shadow-sm">
+              <Plus className="w-6 h-6 text-theme-blue group-hover:text-white transition-colors duration-300" />
             </div>
-            <CardTitle className="text-lg font-semibold">Custom Scenario</CardTitle>
-            <CardDescription className="text-sm text-slate-500 dark:text-slate-400">
+            <CardTitle className="text-lg font-semibold text-theme-text-primary">Custom Scenario</CardTitle>
+            <CardDescription className="text-sm text-theme-text-secondary">
               Define your own fault vector from scratch — choose affected nodes, severity, and cascade logic.
             </CardDescription>
           </CardHeader>

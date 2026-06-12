@@ -34,11 +34,11 @@ const NewsRoomTitle = ({ alertCount }: { alertCount: number }) => (
 )
 
 const BackButton = () => (
-    <Link href="/dashboard">
-        <Button variant="ghost" size="icon" className="text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
+    <Button asChild variant="ghost" size="icon" className="text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
+        <Link href="/dashboard">
             <ArrowLeft className="h-5 w-5" />
-        </Button>
-    </Link>
+        </Link>
+    </Button>
 )
 
 export function NewsRoomHeader({ alertCount }: NewsRoomHeaderProps) {

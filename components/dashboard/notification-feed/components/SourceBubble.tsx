@@ -12,13 +12,17 @@ interface SourceBubbleProps {
   source: NotificationSource
 }
 
+// Global cache of in-flight promises to deduplicate concurrent requests for the same URL
+const inFlightRequests = new Map<string, Promise<SourceMetadata | null>>()
+
 export function SourceBubble({ source }: SourceBubbleProps) {
   const [metadata, setMetadata] = useState<SourceMetadata | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     async function fetchMetadata() {
-      if (!source.url) return
+      if (!source.url || !isOpen) return
       
       // Check cache first
       if (metadataCache.has(source.url)) {
@@ -29,47 +33,49 @@ export function SourceBubble({ source }: SourceBubbleProps) {
       
       setLoading(true)
       try {
-        const response = await fetch(`/api/getmetaData?url=${encodeURIComponent(source.url)}`)
-        if (response.ok) {
-          const data = await response.json()
-          setMetadata(data)
-          // Cache the result
-          metadataCache.set(source.url, data)
-        } else {
-          // Cache null for failed requests to avoid retrying
-          metadataCache.set(source.url, null)
+        // Retrieve or create in-flight promise for this URL to prevent duplicate parallel requests
+        let requestPromise = inFlightRequests.get(source.url)
+        if (!requestPromise) {
+          requestPromise = (async () => {
+            try {
+              const response = await fetch(`/api/getmetaData?url=${encodeURIComponent(source.url)}`)
+              if (response.ok) {
+                const data = await response.json()
+                metadataCache.set(source.url, data)
+                return data
+              }
+            } catch (error) {
+              console.error('Failed to fetch metadata:', error)
+            }
+            metadataCache.set(source.url, null)
+            return null
+          })()
+          inFlightRequests.set(source.url, requestPromise)
         }
+
+        const data = await requestPromise
+        setMetadata(data)
       } catch (error) {
-        console.error('Failed to fetch metadata:', error)
-        // Cache null for failed requests
+        console.error('Failed to resolve metadata:', error)
         metadataCache.set(source.url, null)
       } finally {
+        inFlightRequests.delete(source.url)
         setLoading(false)
       }
     }
     fetchMetadata()
-  }, [source.url])
+  }, [source.url, isOpen])
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     window.open(source.url, '_blank', 'noopener,noreferrer')
   }
 
-  if (loading) {
-    const hostname = new URL(source.url).hostname.replace(/^www\./, '')
-    return (
-      <div className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-md">
-        {getSiteIcon(source.url)}
-        <TextShimmer duration={1.5}>{`Fetching ${hostname}...`}</TextShimmer>
-      </div>
-    )
-  }
-
-  const displayTitle = metadata?.siteName || source.title || new URL(source.url).hostname
+  const displayTitle = source.title || new URL(source.url).hostname
 
   return (
     <TooltipProvider>
-      <Tooltip>
+      <Tooltip onOpenChange={setIsOpen}>
         <TooltipTrigger asChild>
           <button 
             onClick={handleClick}
@@ -81,39 +87,49 @@ export function SourceBubble({ source }: SourceBubbleProps) {
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-sm">
-          <div className="flex flex-col gap-2">
-            {metadata?.image && (
-              <img 
-                src={metadata.image} 
-                alt={source.title || 'Source preview'}
-                className="w-full h-24 object-cover rounded"
-              />
-            )}
-            <div>
-              <button 
-                onClick={handleClick}
-                className="font-medium text-sm text-left hover:underline cursor-pointer"
-              >
-                {source.title}
-                <ExternalLink className="w-3 h-3 inline ml-1 opacity-60" />
-              </button>
-              <div className="text-xs text-muted-foreground mt-1">
-                Credibility: {Math.round(source.credibility * 100)}%
+          <div className="flex flex-col gap-2 min-w-[200px]">
+            {loading ? (
+              <div className="flex flex-col gap-1.5 py-1">
+                <TextShimmer duration={1.5} className="text-xs text-muted-foreground">Fetching metadata...</TextShimmer>
+                <div className="h-3 bg-muted animate-pulse rounded w-3/4"></div>
+                <div className="h-2.5 bg-muted animate-pulse rounded w-full"></div>
               </div>
-              {source.publishedAt && safeDateFormat(source.publishedAt) && (
-                <div className="text-xs text-muted-foreground">
-                  {safeDateFormat(source.publishedAt)}
+            ) : (
+              <>
+                {metadata?.image && (
+                  <img 
+                    src={metadata.image} 
+                    alt={source.title || 'Source preview'}
+                    className="w-full h-24 object-cover rounded"
+                  />
+                )}
+                <div>
+                  <button 
+                    onClick={handleClick}
+                    className="font-medium text-sm text-left hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    {source.title}
+                    <ExternalLink className="w-3 h-3 inline ml-0.5 opacity-60" />
+                  </button>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Credibility: {Math.round(source.credibility * 100)}%
+                  </div>
+                  {source.publishedAt && safeDateFormat(source.publishedAt) && (
+                    <div className="text-xs text-muted-foreground">
+                      {safeDateFormat(source.publishedAt)}
+                    </div>
+                  )}
+                  {metadata?.description && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {metadata.description.length > 120 
+                        ? `${metadata.description.substring(0, 120)}...` 
+                        : metadata.description
+                      }
+                    </div>
+                  )}
                 </div>
-              )}
-              {metadata?.description && (
-                <div className="text-xs text-muted-foreground mt-1">
-                  {metadata.description.length > 120 
-                    ? `${metadata.description.substring(0, 120)}...` 
-                    : metadata.description
-                  }
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </TooltipContent>
       </Tooltip>

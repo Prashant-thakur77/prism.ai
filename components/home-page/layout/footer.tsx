@@ -33,24 +33,24 @@ export function Footer() {
   };
 
   return (
-    <footer className="w-full bg-[#FAFBFF] py-16 border-t border-black/[0.04]">
+    <footer className="w-full bg-background py-16 border-t border-border/40">
       <div className="max-w-[1400px] mx-auto px-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] md:pr-16 gap-12 md:gap-24">
           
           {}
           <div>
             <div className="flex items-center gap-2.5 mb-4 group">
-              <div className="relative flex items-center justify-center p-2 rounded-xl bg-gradient-to-br from-[#2563EB]/10 to-[#7C3AED]/10 border border-[#2563EB]/15 shadow-[0_2px_12px_rgba(37,99,235,0.1)]">
-                <svg className="w-5 h-5 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="relative flex items-center justify-center p-2 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/15 shadow-[0_2px_12px_rgba(11,79,255,0.05)]">
+                <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                 </svg>
               </div>
-              <h2 className="text-[22px] font-[700] text-[#0F172A] tracking-tight">PRISM 
+              <h2 className="text-[22px] font-[700] text-foreground tracking-tight">PRISM 
                 (PRODUCT ROUTE INTELLIGENCE AND SUPPLY MAPPING)
               </h2>
             </div>
-            <p className="text-[14px] font-[400] text-[#64748B] max-w-xs leading-relaxed">
+            <p className="text-[14px] font-[400] text-muted-foreground max-w-xs leading-relaxed">
               Empowering global supply chains with autonomous AI and digital twin resilience for risk mitigation and supply chain optimization.
             </p>
           </div>
@@ -58,31 +58,31 @@ export function Footer() {
           <div className="flex gap-16 md:gap-32 md:ml-auto flex-wrap">
             {}
             <div>
-              <h3 className="text-[15px] font-[600] text-[#0F172A] mb-6">Resources</h3>
+              <h3 className="text-[15px] font-[600] text-foreground mb-6">Resources</h3>
               <ul className="space-y-3.5">
-                <li><Link href="/docs" className="text-[14px] text-[#64748B] hover:text-[#2563EB] transition-colors">Documentation</Link></li>
-                <li><Link href="/privacy" className="text-[14px] text-[#64748B] hover:text-[#2563EB] transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="text-[14px] text-[#64748B] hover:text-[#2563EB] transition-colors">Terms of Service</Link></li>
+                <li><Link href="/docs" className="text-[14px] text-muted-foreground hover:text-primary transition-colors">Documentation</Link></li>
+                <li><Link href="/privacy" className="text-[14px] text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="text-[14px] text-muted-foreground hover:text-primary transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
 
             {}
             <div>
-              <h3 className="text-[15px] font-[600] text-[#0F172A] mb-6">Platform</h3>
+              <h3 className="text-[15px] font-[600] text-foreground mb-6">Platform</h3>
               <ul className="space-y-3.5">
-                <li><a href="#top" onClick={(e) => smoothScroll(e, 'top')} className="text-[14px] text-[#64748B] hover:text-[#2563EB] transition-colors">Home</a></li>
-                <li><a href="#how-it-works" onClick={(e) => smoothScroll(e, 'how-it-works')} className="text-[14px] text-[#64748B] hover:text-[#2563EB] transition-colors">How It Works</a></li>
-                <li><a href="#benefits" onClick={(e) => smoothScroll(e, 'benefits')} className="text-[14px] text-[#64748B] hover:text-[#2563EB] transition-colors">Analytics</a></li>
-                <li><a href="#features" onClick={(e) => smoothScroll(e, 'features')} className="text-[14px] text-[#64748B] hover:text-[#2563EB] transition-colors">Features</a></li>
+                <li><a href="#top" onClick={(e) => smoothScroll(e, 'top')} className="text-[14px] text-muted-foreground hover:text-primary transition-colors">Home</a></li>
+                <li><a href="#how-it-works" onClick={(e) => smoothScroll(e, 'how-it-works')} className="text-[14px] text-muted-foreground hover:text-primary transition-colors">How It Works</a></li>
+                <li><a href="#benefits" onClick={(e) => smoothScroll(e, 'benefits')} className="text-[14px] text-muted-foreground hover:text-primary transition-colors">Analytics</a></li>
+                <li><a href="#features" onClick={(e) => smoothScroll(e, 'features')} className="text-[14px] text-muted-foreground hover:text-primary transition-colors">Features</a></li>
               </ul>
             </div>
           </div>
         </div>
 
         {}
-        <div className="mt-20 pt-8 border-t border-black/[0.04] flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[14px] text-[#94A3B8]">© {new Date().getFullYear()} PRISM Systems. All rights reserved.</p>
-          <p className="text-[14px] text-[#94A3B8]">Developed by <span className="font-medium text-[#64748B]">STACK OVERFLOWED</span></p>
+        <div className="mt-20 pt-8 border-t border-border/40 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-[14px] text-muted-foreground">© {new Date().getFullYear()} PRISM Systems. All rights reserved.</p>
+          <p className="text-[14px] text-muted-foreground">Developed by <span className="font-medium text-foreground">STACK OVERFLOWED</span></p>
         </div>
       </div>
     </footer>

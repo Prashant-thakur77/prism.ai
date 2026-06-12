@@ -252,8 +252,8 @@ export default function DynamicOrchestratorPage() {
                     <SelectValue placeholder="Select supply chain..." />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border/40">
-                    {supplyChains.map((chain) => (
-                      <SelectItem key={chain.supply_chain_id} value={chain.supply_chain_id}>
+                    {supplyChains.map((chain, index) => (
+                      <SelectItem key={chain.supply_chain_id || `chain-${index}`} value={chain.supply_chain_id}>
                         <div className="flex items-center gap-2">
                           <Network className="h-4 w-4" />
                           {chain.name}
@@ -280,8 +280,8 @@ export default function DynamicOrchestratorPage() {
                     <SelectItem value="all">
                       <span className="text-muted-foreground">All Nodes</span>
                     </SelectItem>
-                    {availableNodes.map((node) => (
-                      <SelectItem key={node.id} value={node.id}>
+                    {availableNodes.map((node, index) => (
+                      <SelectItem key={node.id || `node-${index}`} value={node.id}>
                         <div className="flex items-center gap-2">
                           <Zap className="h-3 w-3" />
                           <span>{node.name}</span>

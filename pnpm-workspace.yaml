@@ -1,10 +1,16 @@
 packages:
   - .
 
-onlyBuiltDependencies:
-  - '@scarf/scarf'
-  - '@sentry/cli'
-  - '@vercel/speed-insights'
-  - protobufjs
-  - sharp
-  - sqlite3
+allowBuilds:
+  '@scarf/scarf': true
+  '@sentry/cli': true
+  '@vercel/speed-insights': true
+  cpu-features: true
+  protobufjs: true
+  sharp: true
+  sqlite3: true
+  ssh2: true
+
+overrides:
+  import-in-the-middle: "1.15.0"
+  zod: "3.25.67"

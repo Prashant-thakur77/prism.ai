@@ -63,7 +63,6 @@ const RightPanel: FC<RightPanelProps> = ({
   // Handle delete action
   const handleDelete = () => {
     if (selectedElement && onDelete) {
-      // Save preference to cookie if "don't ask again" was checked
       if (dontAskAgain) {
         Cookies.set('deleteNodeSkipConfirmation', 'true', { 
           expires: 365, // 1 year
@@ -100,7 +99,7 @@ const RightPanel: FC<RightPanelProps> = ({
   if (!selectedElement) {
     return (
       <motion.div 
-        className="border-l border-border bg-card/50 backdrop-blur-sm flex flex-col shadow-sm overflow-hidden"
+        className="border-l border-theme-border-subtle bg-theme-bg-surface flex flex-col overflow-hidden"
         variants={panelVariants}
         animate="expanded"
         initial={false}
@@ -118,12 +117,10 @@ const RightPanel: FC<RightPanelProps> = ({
     
     setFormValues(updatedFormValues);
     
-    // Only change to unsaved if we're not already in unsaved state
     if (saveStatus !== 'unsaved') {
       setSaveStatus('unsaved');
     }
     
-    // Immediately update the React Flow node/edge data for real-time preview
     if (selectedElement) {
       const updatedElement = {
         ...selectedElement,
@@ -135,7 +132,6 @@ const RightPanel: FC<RightPanelProps> = ({
       onUpdate(updatedElement);
     }
 
-    // Trigger debounced save
     debouncedSave();
   };
 
@@ -143,7 +139,6 @@ const RightPanel: FC<RightPanelProps> = ({
     setLatitude(lat)
     setLongitude(lng)
     
-    // Also update the address field if provided
     if (address) {
       const updatedFormValues = {
         ...formValues,
@@ -151,12 +146,10 @@ const RightPanel: FC<RightPanelProps> = ({
       };
       setFormValues(updatedFormValues);
       
-      // Only change to unsaved if we're not already in unsaved state
       if (saveStatus !== 'unsaved') {
         setSaveStatus('unsaved');
       }
       
-      // Update the element immediately for real-time preview
       if (selectedElement) {
         const updatedElement = {
           ...selectedElement,
@@ -168,7 +161,6 @@ const RightPanel: FC<RightPanelProps> = ({
         onUpdate(updatedElement);
       }
       
-      // Trigger debounced save
       debouncedSave();
     }
   }
@@ -178,12 +170,10 @@ const RightPanel: FC<RightPanelProps> = ({
     if (isNode) {
       const node = selectedElement as Node;
       
-      // Handle template groups
       if (node.type === 'group' && node.data.isTemplate) {
         return <TemplateGroupConfiguration node={node} nodes={nodes} />;
       }
       
-      // Handle regular nodes
       return (
         <NodeConfiguration
           selectedNode={node}
@@ -193,7 +183,6 @@ const RightPanel: FC<RightPanelProps> = ({
         />
       );
     } else {
-      // Handle edges
       const edge = selectedElement as Edge;
       const sourceNode = nodes.find(node => node.id === edge.source);
       const targetNode = nodes.find(node => node.id === edge.target);
@@ -212,7 +201,7 @@ const RightPanel: FC<RightPanelProps> = ({
 
   return (
     <motion.div 
-      className="border-l border-border bg-card/50 backdrop-blur-sm shadow-sm flex flex-col h-full overflow-hidden dark:bg-slate-950"
+      className="border-l border-theme-border-subtle bg-theme-bg-surface flex flex-col h-full overflow-hidden"
       variants={panelVariants}
       animate="expanded"
       initial={false}
@@ -220,25 +209,24 @@ const RightPanel: FC<RightPanelProps> = ({
     >
       {/* Header with Save Status */}
       <motion.div 
-        className="flex-shrink-0 p-6 border-b border-border bg-gradient-to-r from-card to-card/80 space-y-3 "
+        className="flex-shrink-0 p-6 border-b border-theme-border-subtle bg-theme-bg-surface space-y-3"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <div className="flex items-center justify-between dark:bg-slate-950" >
-          <h3 className="text-lg font-semibold text-foreground">Properties</h3>
+        <div className="flex items-center justify-between" >
+          <h3 className="text-base font-bold text-theme-text-primary">Properties</h3>
         </div>
         
-        {/* Save Status Indicator */}
         <SaveStatusIndicator saveStatus={saveStatus} />
         
         <motion.p 
-          className="text-sm text-muted-foreground"
+          className="text-xs text-theme-text-secondary font-medium"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          Editing {isNode ? 'node' : 'edge'}: <span className="font-medium text-blue-600 dark:text-blue-400">{formValues.label || selectedElement.id}</span>
+          Editing {isNode ? 'node' : 'edge'}: <span className="font-semibold text-theme-blue">{formValues.label || selectedElement.id}</span>
         </motion.p>
       </motion.div>
       
@@ -267,7 +255,7 @@ const RightPanel: FC<RightPanelProps> = ({
       
       {/* Fixed Bottom Section */}
       <motion.div 
-        className="flex-shrink-0 p-6 border-t border-border bg-gradient-to-r from-card to-card/80 space-y-3"
+        className="flex-shrink-0 p-6 border-t border-theme-border-subtle bg-theme-bg-surface space-y-3"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.3 }}
@@ -286,7 +274,7 @@ const RightPanel: FC<RightPanelProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onUngroup(selectedElement.id)}
-              className="text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/30"
+              className="text-theme-blue border-theme-blue/20 hover:bg-theme-blue/10 hover:border-theme-blue/30 font-semibold text-xs rounded-theme-md"
             >
               <span className="mr-2">⚡</span>
               Ungroup Template
@@ -309,9 +297,9 @@ const RightPanel: FC<RightPanelProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={handleDirectDelete}
-                className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30 shadow-md"
+                className="text-theme-red border-theme-red/20 hover:bg-theme-red/5 bg-transparent shadow-none hover:text-theme-red text-xs font-semibold rounded-theme-md"
               >
-                <DeleteIcon size={12} className="w-3 h-3 mr-1" />
+                <DeleteIcon size={12} className="w-3 h-3 mr-1 text-theme-red" />
                 Delete
               </Button>
             ) : (
@@ -320,28 +308,29 @@ const RightPanel: FC<RightPanelProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30 shadow-md"
+                    className="text-theme-red border-theme-red/20 hover:bg-theme-red/5 bg-transparent shadow-none hover:text-theme-red text-xs font-semibold rounded-theme-md"
                   >
-                    <DeleteIcon size={12} className="w-3 h-3 mr-1 " />
+                    <DeleteIcon size={12} className="w-3 h-3 mr-1 text-theme-red" />
                     Delete
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-theme-bg-surface border-theme-border-subtle text-theme-text-primary rounded-theme-lg">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Node</AlertDialogTitle>
-                    <AlertDialogDescription className="space-y-4">
+                    <AlertDialogTitle className="font-bold text-base">Delete Node</AlertDialogTitle>
+                    <AlertDialogDescription className="space-y-4 text-xs text-theme-text-secondary font-medium">
                       <div>
                         Are you sure you want to delete "{formValues.label || selectedElement.id}"? This action cannot be undone and will also remove all connected edges.
                       </div>
                       <div className="flex items-center space-x-2 pt-4">
                         <Checkbox 
-                          id="dont-ask-again-main" 
-                          checked={dontAskAgain}
-                          onCheckedChange={(checked) => setDontAskAgain(checked as boolean)}
+                           id="dont-ask-again-main" 
+                           checked={dontAskAgain}
+                           onCheckedChange={(checked) => setDontAskAgain(checked as boolean)}
+                           className="border-theme-border-subtle rounded-sm"
                         />
                         <label 
                           htmlFor="dont-ask-again-main" 
-                          className="text-sm text-muted-foreground cursor-pointer select-none"
+                          className="text-xs text-theme-text-secondary cursor-pointer select-none font-medium"
                         >
                           Don't ask again
                         </label>
@@ -349,8 +338,8 @@ const RightPanel: FC<RightPanelProps> = ({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    <AlertDialogCancel className="border-theme-border-subtle text-theme-text-secondary hover:bg-theme-bg-secondary/50 rounded-theme-md">Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-theme-red text-white hover:bg-theme-red/90 rounded-theme-md">
                       Delete
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -363,17 +352,17 @@ const RightPanel: FC<RightPanelProps> = ({
         {/* Collapse Button */}
         <motion.button
           onClick={() => setIsCollapsed(true)}
-          className="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors group"
+          className="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-theme-md hover:bg-theme-bg-secondary/50 transition-colors group border-none bg-transparent outline-none focus:outline-none"
           title="Collapse Properties Panel"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <span className="text-xs text-muted-foreground group-hover:text-primary font-medium ">Hide Panel</span>
+          <span className="text-xs text-theme-text-secondary group-hover:text-theme-text-primary font-semibold">Hide Panel</span>
           <motion.div
             variants={iconVariants}
             animate="expanded"
           >
-            <ChevronLeft className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            <ChevronLeft className="h-4 w-4 text-theme-text-secondary group-hover:text-theme-text-primary transition-colors" />
           </motion.div>
         </motion.button>
       </motion.div>
@@ -381,4 +370,4 @@ const RightPanel: FC<RightPanelProps> = ({
   );
 };
 
-export default RightPanel; 
+export default RightPanel;

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from 'sonner'
 
-import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
 import { SimulationLoader } from "@/components/simulation/test/simulation-loader"
@@ -22,29 +21,6 @@ import { ProfessionalTemplateSelection } from "./professional-template-selection
 import type { ApiResponse, SupplyChainData } from "./types"
 import { ScenarioConfigurationForm } from "./enhanced-scenario-configuration-form"
 
-// Minimalist Card Component with variant styling
-function MinimalCard({ children, className = "", variant = "default", ...props }: { 
-  children: React.ReactNode; 
-  className?: string; 
-  variant?: "default" | "accent" | "subtle";
-  [key: string]: any 
-}) {
-  const variantStyles = {
-    default: "border border-gray-200 dark:border-gray-800 bg-white dark:bg-black shadow-sm",
-    accent: "border border-black dark:border-white bg-gray-50 dark:bg-gray-900 shadow-md",
-    subtle: "border border-gray-100 dark:border-gray-900 bg-gray-50/50 dark:bg-gray-900/50 shadow-sm"
-  }
-  
-  return (
-    <Card 
-      className={`${variantStyles[variant]} rounded-2xl transition-all duration-300 ${className}`} 
-      {...props}
-    >
-      {children}
-    </Card>
-  )
-}
-
 function SimulationPageContent() {
   const router = useRouter()
   const [simulationHistory, setSimulationHistory] = useState<Simulation[]>([])
@@ -52,7 +28,7 @@ function SimulationPageContent() {
   const [isAIScenarioOpen, setIsAIScenarioOpen] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  // View state management - simplified without query params
+  // View state management - templates, form, simulation
   const [view, setView] = useState('templates')
   const [simulationRunning, setSimulationRunning] = useState(false)
   const [simulationComplete, setSimulationComplete] = useState(false)
@@ -73,12 +49,12 @@ function SimulationPageContent() {
   // Access the impact context
   const { setImpactData, setIsLoading } = useImpact()
 
-  //fetch user 
+  // fetch user 
   const { userData, userLoading } = useUser()
 
   const user_id = userData?.id
 
-  // Form validation - more robust checking
+  // Form validation
   const isFormValid = !!(
     scenarioData.scenarioName && 
     scenarioData.scenarioName.trim().length > 0 &&
@@ -92,7 +68,6 @@ function SimulationPageContent() {
     scenarioData.disruptionDuration > 0
   )
 
-  // Debug logging for form validation (moved to useEffect to avoid render-time side effects)
   useEffect(() => {
     console.log('🔧 Form validation debug:', {
       scenarioName: scenarioData.scenarioName,
@@ -108,7 +83,6 @@ function SimulationPageContent() {
   useEffect(() => {
     const fetchSupplyChains = async () => {
       if (!userData?.id) {
-        // Only show error after loading is complete
         if (!userLoading) {
           toast.error("User not found. Please log in.")
         }
@@ -141,7 +115,6 @@ function SimulationPageContent() {
       }
     }
     
-    // Wait for user store to finish loading before doing anything
     if (userLoading) return
 
     if (!supplyChains.length && userData?.id) {
@@ -183,12 +156,11 @@ function SimulationPageContent() {
   }
 
   const handleStartFromScratch = () => {
-    // Reset scenario data to defaults
     updateScenarioData({
       scenarioName: "",
-      scenarioType: "",
-      disruptionSeverity: 0,
-      disruptionDuration: 0,
+      scenarioType: "disruption",
+      disruptionSeverity: 50,
+      disruptionDuration: 14,
       affectedNode: "",
       description: "",
       startDate: "",
@@ -202,7 +174,7 @@ function SimulationPageContent() {
       randomSeed: ""
     })
     setView('form')
-    toast.success("Started with blank scenario")
+    toast.success("Initialized custom scenario builder")
   }
 
   const runSimulation = async () => {
@@ -221,9 +193,8 @@ function SimulationPageContent() {
       setSimulationRunning(true)
       setSimulationComplete(false)
       setProgress(0)
-      setPendingNavigation(null) // Reset any pending navigation
+      setPendingNavigation(null)
 
-      // Check for cached simulation first
       console.log('🔍 Checking for cached simulation...')
       const cachedSimulation = await findCachedSimulation(scenarioData, selectedSupplyChainId)
       
@@ -232,20 +203,16 @@ function SimulationPageContent() {
         toast.success("Found existing simulation with same parameters")
         setCurrentSimulation(cachedSimulation)
         
-        // Fast progress for cached simulation
         const fastInterval = setInterval(() => {
           setProgress((prev) => {
             if (prev >= 100) {
               clearInterval(fastInterval)
               setSimulationRunning(false)
               setSimulationComplete(true)
-              
-              console.log(`✅ Setting navigation for cached results: ${cachedSimulation.simulation_id}`)
               setPendingNavigation(`/simulation/result?id=${cachedSimulation.simulation_id}`)
-              
               return 100
             }
-            return prev + 25 // Faster progress for cached results
+            return prev + 25
           })
         }, 200)
         
@@ -279,41 +246,17 @@ function SimulationPageContent() {
       const created = await createSimulationWithCache(newSim, scenarioData)
       setCurrentSimulation(created)
 
-      const simulationConfig = {
-        id: created?.simulation_id,
-        name: scenarioData.scenarioName,
-        type: scenarioData.scenarioType,
-        supplyChainId: selectedSupplyChainId,
-        parameters: {
-          severity: scenarioData.disruptionSeverity,
-          duration: scenarioData.disruptionDuration,
-          affectedNode: scenarioData.affectedNode,
-          description: scenarioData.description,
-          startDate: scenarioData.startDate,
-          endDate: scenarioData.endDate,
-          monteCarloRuns: scenarioData.monteCarloRuns,
-          distributionType: scenarioData.distributionType,
-          cascadeEnabled: scenarioData.cascadeEnabled,
-          failureThreshold: scenarioData.failureThreshold,
-          bufferPercent: scenarioData.bufferPercent,
-          alternateRouting: scenarioData.alternateRouting,
-          randomSeed: scenarioData.randomSeed
-        }
-      }
-
       setIsLoading(true)
 
-      // Start the progress simulation immediately to animate while the API is working
       const progressInterval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 90) {
-            return 90 // Pause at 90% until API responds
+            return 90
           }
           return prev + 5
         })
       }, 300)
 
-      // Call the impact assessment agent with the simulation ID
       try {
         console.log(`🎯 Triggering impact assessment for simulation: ${created?.simulation_id}`)
         
@@ -325,7 +268,6 @@ function SimulationPageContent() {
             const chainData = JSON.parse(localData)
             localNodes = chainData.nodes || []
             localEdges = chainData.edges || []
-            console.log(`ℹ️ Loaded ${localNodes.length} nodes and ${localEdges.length} edges from localStorage for chain ${selectedSupplyChainId}`)
           }
         } catch (storageErr) {
           console.warn('⚠️ Error parsing local supply chain data:', storageErr)
@@ -345,10 +287,8 @@ function SimulationPageContent() {
         const impactResponse = await response.json()
         
         if (response.ok && impactResponse.success) {
-          console.log('✅ Impact assessment completed successfully:', impactResponse)
           toast.success("Impact assessment completed successfully")
           
-          // Update simulation with enhanced results
           if (created?.simulation_id && impactResponse.data) {
             await updateSimulation(created.simulation_id, {
               status: "completed",
@@ -362,10 +302,7 @@ function SimulationPageContent() {
             })
           }
         } else {
-          console.warn('Impact assessment warning:', impactResponse.error)
           toast.warning("Impact assessment completed with warnings")
-          
-          // Still update simulation as completed but without enhanced data
           if (created?.simulation_id) {
             await updateSimulation(created.simulation_id, {
               status: "completed",
@@ -385,7 +322,6 @@ function SimulationPageContent() {
         console.error('❌ Error calling impact assessment agent:', error)
         toast.error("Failed to run impact assessment, using basic simulation")
         
-        // Fallback: Update simulation as completed without impact assessment
         if (created?.simulation_id) {
           await updateSimulation(created.simulation_id, {
             status: "completed",
@@ -406,16 +342,13 @@ function SimulationPageContent() {
         clearInterval(progressInterval)
         setProgress(100)
         
-        // Force a brief delay at 100% for user feedback before navigation
         setTimeout(() => {
           setSimulationRunning(false)
           setSimulationComplete(true)
           
           if (created?.simulation_id) {
-            console.log(`✅ Setting navigation for simulation: ${created.simulation_id}`)
             setPendingNavigation(`/simulation/result?id=${created.simulation_id}`)
           } else {
-            console.warn('⚠️ No simulation ID available, setting basic results page navigation')
             setPendingNavigation('/simulation/result')
           }
         }, 500)
@@ -428,25 +361,8 @@ function SimulationPageContent() {
     }
   }
 
-  const handleNewSimulation = () => {
-    setView('templates')
-    setSimulationRunning(false)
-    setSimulationComplete(false)
-    setProgress(0)
-    setPendingNavigation(null) // Reset any pending navigation
-    setCurrentSimulation(null)
-  }
-
-  // Function to view existing simulation results
-  const handleViewSimulationResults = (simulationId: string) => {
-    // Navigate directly to results page with simulation ID
-    router.push(`/simulation/result?id=${simulationId}`)
-  }
-
-  // Handle navigation when simulation is complete
   useEffect(() => {
     if (simulationComplete && pendingNavigation) {
-      console.log(`🎯 Navigating to: ${pendingNavigation}`)
       router.push(pendingNavigation)
       setPendingNavigation(null)
       
@@ -457,108 +373,213 @@ function SimulationPageContent() {
   }, [simulationComplete, pendingNavigation, selectedSupplyChainId, router])
 
   return (
-    <div className="relative min-h-full flex-1 bg-white dark:bg-black overflow-hidden text-black dark:text-white">
-      <div className="flex h-full">
-        {/* Left Rail — Workflow Steps */}
-        <aside className="w-52 shrink-0 border-r border-slate-200 dark:border-slate-800 flex flex-col py-6 px-4 gap-1">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-semibold mb-3 px-2">Probe Workflow</p>
-          <StepItem active={view === 'templates'} done={view === 'form' || view === 'simulation'} number={1} label="Select Preset" onClick={() => view !== 'simulation' && setView('templates')} />
-          <StepItem active={view === 'form'} done={view === 'simulation'} number={2} label="Configure Parameters" onClick={() => {}} />
-          <StepItem active={view === 'simulation'} done={false} number={3} label="Execute Probe" onClick={() => {}} />
+    <div className="relative min-h-full flex-1 bg-theme-bg-primary overflow-hidden text-theme-text-primary">
+      <style dangerouslySetInnerHTML={{__html: `
+        /* PROBE WORKFLOW SIDEBAR */
+        .probe-sidebar {
+          width: 218px; min-width: 218px; background: #F6F3EE; border-right: 1px solid #E5DFD6;
+          padding: 24px 16px 20px; display: flex; flex-direction: column;
+        }
+        .probe-label {
+          font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+          letter-spacing: 0.12em; color: #9C9489; margin-bottom: 20px;
+        }
+        .probe-steps { display: flex; flex-direction: column; gap: 0; flex: 1; }
+        .probe-step { display: flex; align-items: flex-start; gap: 12px; position: relative; padding-bottom: 28px; text-align: left; }
+        .probe-step:last-child { padding-bottom: 0; }
+        /* Vertical connector line between steps */
+        .probe-step:not(:last-child)::after {
+          content: ''; position: absolute; left: 13px; top: 27px;
+          width: 1.5px; height: calc(100% - 27px);
+          background: #E5DFD6;
+        }
+        .step-circle {
+          width: 27px; height: 27px; border-radius: 50%; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 0.75rem; font-weight: 700; position: relative; z-index: 1;
+        }
+        .step-circle.active { background: #2748E8; color: #fff; }
+        .step-circle.done { background: #EDFAF3; border: 1.5px solid #1A7F4B; color: #1A7F4B; }
+        .step-circle.pending {
+          background: #F6F3EE; border: 1.5px solid #D6CFC4; color: #9C9489;
+        }
+        .step-text { padding-top: 3px; }
+        .step-title { font-size: 0.82rem; font-weight: 600; color: #18160F; }
+        .step-title.muted { color: #9C9489; font-weight: 500; }
 
-          <div className="mt-auto border-t border-slate-200 dark:border-slate-800 pt-4 space-y-1">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-semibold mb-2 px-2">Tools</p>
-            <button
-              onClick={() => setIsAIScenarioOpen(true)}
-              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded transition-colors text-left"
-            >
-              <span className="w-4 h-4 text-slate-400">✦</span>
-              AI Vector Generator
-            </button>
+        /* Issues badge in sidebar */
+        .issues-badge-sidebar {
+          display: inline-flex; align-items: center; gap: 7px; margin-top: auto;
+          background: #FEF2F2; border: 1px solid rgba(185,28,28,0.25);
+          border-radius: 100px; padding: 7px 12px;
+          font-size: 0.75rem; font-weight: 700; color: #B91C1C; cursor: pointer;
+          width: fit-content;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+          flex: 1; overflow-y: auto; padding: 32px 36px 40px;
+          display: flex; flex-direction: column; gap: 28px;
+        }
+
+        /* PAGE HEADER */
+        .page-header { display: flex; align-items: flex-start; justify-content: space-between; }
+        .ph-left { display: flex; flex-direction: column; gap: 6px; }
+        .ph-eyebrow {
+          font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+          letter-spacing: 0.12em; color: #9C9489;
+        }
+        .ph-title { font-size: 1.55rem; font-weight: 800; color: #18160F; letter-spacing: -0.03em; }
+        .ph-desc { font-size: 0.82rem; color: #5C5850; line-height: 1.65; max-width: 540px; margin-top: 2px; }
+        .step-badge {
+          font-size: 0.72rem; font-weight: 600; color: #5C5850;
+          background: #EFEBE3; border: 1px solid #E5DFD6; border-radius: 8px;
+          padding: 5px 12px; white-space: nowrap; margin-top: 4px;
+        }
+
+        .page-divider { height: 1px; background: #E5DFD6; }
+
+        /* Dark Mode support */
+        .dark .probe-sidebar { background: #111010; border-right-color: #2A2825; }
+        .dark .probe-step:not(:last-child)::after { background: #2A2825; }
+        .dark .step-circle.pending { background: #111010; border-color: #353330; color: #6B6560; }
+        .dark .step-title { color: #F0EDE7; }
+        .dark .step-title.muted { color: #6B6560; }
+        .dark .issues-badge-sidebar { background: #1A1212; border-color: rgba(220,38,38,0.2); color: #ef4444; }
+        .dark .ph-title { color: #F0EDE7; }
+        .dark .ph-desc { color: #A09890; }
+        .dark .step-badge { background: #191817; border-color: #2A2825; color: #A09890; }
+        .dark .page-divider { background: #2A2825; }
+      `}} />
+
+      <div className="flex h-full w-full">
+        {/* Left Rail — Workflow Steps */}
+        <aside className="probe-sidebar">
+          <div className="probe-label">Probe Workflow</div>
+          <div className="probe-steps">
+            {/* Step 1 */}
+            <div className="probe-step">
+              <button 
+                onClick={() => view !== 'simulation' && setView('templates')}
+                disabled={view === 'simulation'}
+                className="flex items-start gap-3 text-left w-full bg-transparent border-none outline-none p-0 cursor-pointer"
+              >
+                <div className={`step-circle ${view === 'templates' ? 'active' : 'done'}`}>
+                  {view === 'form' || view === 'simulation' ? '✓' : 1}
+                </div>
+                <div className="step-text">
+                  <div className={`step-title ${view === 'templates' ? 'active' : 'muted'}`} style={view === 'templates' ? {color:'#2748E8'} : {}}>
+                    Select Preset
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Step 2 */}
+            <div className="probe-step">
+              <button 
+                disabled={true}
+                className="flex items-start gap-3 text-left w-full bg-transparent border-none outline-none p-0 cursor-default"
+              >
+                <div className={`step-circle ${view === 'form' ? 'active' : (view === 'simulation' ? 'done' : 'pending')}`}>
+                  {view === 'simulation' ? '✓' : 2}
+                </div>
+                <div className="step-text">
+                  <div className={`step-title ${view === 'form' ? 'active' : 'muted'}`} style={view === 'form' ? {color:'#2748E8'} : {}}>
+                    Configure Parameters
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Step 3 */}
+            <div className="probe-step">
+              <button 
+                disabled={true}
+                className="flex items-start gap-3 text-left w-full bg-transparent border-none outline-none p-0 cursor-default"
+              >
+                <div className={`step-circle ${view === 'simulation' ? 'active' : 'pending'}`}>
+                  3
+                </div>
+                <div className="step-text">
+                  <div className={`step-title ${view === 'simulation' ? 'active' : 'muted'}`} style={view === 'simulation' ? {color:'#2748E8'} : {}}>
+                    Execute Probe
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div className="issues-badge-sidebar" onClick={() => setIsAIScenarioOpen(true)}>
+            <span className="text-theme-red font-extrabold mr-1">✦</span>
+            AI Generator
           </div>
         </aside>
 
         {/* Main Panel */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-theme-bg-primary">
+          <div className="main-content">
             {view === "templates" && (
-              <div className="p-8">
-                <div className="max-w-5xl mx-auto">
-                  {/* New header: left-aligned, terse */}
-                  <div className="mb-8 pb-5 border-b border-slate-200 dark:border-slate-800">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-semibold mb-1">Fault Injection Blueprint</p>
-                        <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">
-                          Select an Event Vector
-                        </h1>
-                        <p className="text-sm text-slate-500 mt-1 max-w-lg">
-                          Choose from pre-calibrated disruption presets, or define a custom fault scenario for your network graph.
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="px-2.5 py-1 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 tracking-wide">
-                          STEP 1 / 3
-                        </div>
-                      </div>
-                    </div>
+              <>
+                <div className="page-header">
+                  <div className="ph-left">
+                    <div className="ph-eyebrow">Fault Injection Blueprint</div>
+                    <h1 className="ph-title">Select an Event Vector</h1>
+                    <p className="ph-desc">
+                      Choose from pre-calibrated disruption presets, or define a custom fault scenario for your network graph.
+                    </p>
                   </div>
-
-                  <ProfessionalTemplateSelection
-                    onTemplateSelect={handleTemplateSelect}
-                    onStartFromScratch={handleStartFromScratch}
-                    onAIScenarios={() => setIsAIScenarioOpen(true)}
-                    onSelectScenario={handleForecastScenarioSelect}
-                  />
+                  <div className="step-badge">STEP 1 / 3</div>
                 </div>
-              </div>
+
+                <div className="page-divider" />
+
+                <ProfessionalTemplateSelection
+                   onTemplateSelect={handleTemplateSelect}
+                   onStartFromScratch={handleStartFromScratch}
+                   onAIScenarios={() => setIsAIScenarioOpen(true)}
+                   onSelectScenario={handleForecastScenarioSelect}
+                />
+              </>
             )}
 
             {view === "form" && (
-              <div className="p-8">
-                <div className="max-w-5xl mx-auto">
-                  {/* Form header */}
-                  <div className="mb-8 pb-5 border-b border-slate-200 dark:border-slate-800">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-semibold mb-1">Parameter Configuration</p>
-                        <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">
-                          Fault Vector Parameters
-                        </h1>
-                        <p className="text-sm text-slate-500 mt-1 max-w-lg">
-                          Define the scope and intensity of your probe — affected origin nodes, cascade probability, and fault depth.
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          onClick={() => setView("templates")}
-                          className="flex items-center gap-1.5 text-xs border border-slate-200 dark:border-slate-800 px-3 py-1.5 text-slate-500 hover:text-black dark:hover:text-white hover:border-slate-400 transition-colors"
-                        >
-                          ← Presets
-                        </button>
-                        <div className="px-2.5 py-1 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 tracking-wide">
-                          STEP 2 / 3
-                        </div>
-                      </div>
-                    </div>
+              <>
+                <div className="page-header">
+                  <div className="ph-left">
+                    <div className="ph-eyebrow">Parameter Configuration</div>
+                    <h1 className="ph-title">Fault Vector Parameters</h1>
+                    <p className="ph-desc">
+                      Define the scope and intensity of your probe — affected origin nodes, cascade probability, and fault depth.
+                    </p>
                   </div>
-
-                  <ScenarioConfigurationForm />
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => setView("templates")}
+                      className="flex items-center gap-1.5 text-xs border border-theme-border-subtle bg-theme-bg-surface px-3 py-1.5 text-theme-text-secondary hover:text-theme-text-primary hover:border-theme-border-default rounded-theme-md transition-all font-semibold"
+                    >
+                      ← Presets
+                    </button>
+                    <div className="step-badge">STEP 2 / 3</div>
+                  </div>
                 </div>
 
-                {/* Floating Action Button */}
+                <div className="page-divider" />
+
+                <ScenarioConfigurationForm />
+
                 <FloatingRunButton
                   isFormValid={isFormValid}
                   onRunSimulation={runSimulation}
                   scenarioData={scenarioData}
                 />
-              </div>
+              </>
             )}
 
             {view === "simulation" && simulationRunning && (
-              <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-                <div className="w-full max-w-2xl mx-auto p-8">
-                  <div className="border border-slate-200 dark:border-slate-800 p-10">
+              <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]">
+                <div className="w-full max-w-2xl mx-auto p-4">
+                  <div className="border border-theme-border-subtle bg-theme-bg-surface rounded-theme-lg shadow-lg p-10">
                     <SimulationLoader progress={progress} />
                   </div>
                 </div>
@@ -568,39 +589,15 @@ function SimulationPageContent() {
         </div>
       </div>
 
-      {/* AI Scenario Suggestions Sheet */}
       <AIScenarioSuggestions
         open={isAIScenarioOpen}
         onOpenChange={setIsAIScenarioOpen}
         onSelectScenario={handleAIScenarioSelect}
       />
     </div>
-  );
-}
-
-function StepItem({ active, done, number, label, onClick }: { active: boolean; done: boolean; number: number; label: string; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-3 px-2 py-2 rounded text-left transition-colors w-full ${
-        active ? 'bg-black text-white dark:bg-white dark:text-black' :
-        done ? 'text-slate-500 hover:text-black dark:hover:text-white' :
-        'text-slate-400 cursor-default'
-      }`}
-    >
-      <span className={`w-5 h-5 rounded-full border flex-shrink-0 flex items-center justify-center text-[10px] font-bold ${
-        active ? 'border-white dark:border-black bg-white/20 dark:bg-black/20 text-white dark:text-black' :
-        done ? 'border-slate-400 text-slate-500' :
-        'border-slate-300 dark:border-slate-700 text-slate-400'
-      }`}>
-        {done ? '✓' : number}
-      </span>
-      <span className="text-xs truncate">{label}</span>
-    </button>
   )
 }
 
-// Wrap component with context provider
 export function SimulationPage() {
   return (
     <ScenarioProvider>

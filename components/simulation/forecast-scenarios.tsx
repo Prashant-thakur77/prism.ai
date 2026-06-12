@@ -40,7 +40,8 @@ function MinimalCard({
   return (
     <Card 
       className={cn(
-        "border border-slate-200 dark:border-slate-800 bg-white dark:bg-black shadow-sm rounded-xl transition-all duration-300",
+        "border border-theme-border-subtle bg-theme-bg-surface text-theme-text-primary shadow-sm rounded-theme-lg transition-all duration-300 relative overflow-hidden cursor-pointer",
+        "hover:-translate-y-1.5 hover:shadow-md hover:border-t-2 hover:border-t-theme-blue",
         className
       )} 
       {...props}
@@ -90,10 +91,10 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
   }
 
   const getSeverityColor = (severity: number) => {
-    if (severity >= 80) return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-    if (severity >= 60) return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
-    if (severity >= 40) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-    return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+    if (severity >= 80) return 'bg-theme-red/10 text-theme-red border border-theme-red/20 font-bold'
+    if (severity >= 60) return 'bg-theme-amber/10 text-theme-amber border border-theme-amber/20 font-bold'
+    if (severity >= 40) return 'bg-theme-amber/5 text-theme-amber border border-theme-amber/10 font-bold'
+    return 'bg-theme-green/10 text-theme-green border border-theme-green/20 font-bold'
   }
 
   const getTypeIcon = (type: string) => {
@@ -247,8 +248,8 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
                   <SelectValue placeholder="Select a supply chain" />
                 </SelectTrigger>
                 <SelectContent>
-                  {supplyChains.map((chain) => (
-                    <SelectItem key={chain.supply_chain_id} value={chain.supply_chain_id}>
+                  {supplyChains.map((chain, index) => (
+                    <SelectItem key={chain.supply_chain_id || `chain-${index}`} value={chain.supply_chain_id}>
                       <div className="flex items-center gap-2">
                         <Network className="h-4 w-4 text-slate-500" />
                         {chain.name}
@@ -270,14 +271,14 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-primary/5 dark:bg-primary/10 border border-primary/10 rounded-xl flex items-center justify-center shadow-[0_2px_8px_rgba(11,79,255,0.05)]">
+              <Brain className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+              <h3 className="text-xl font-semibold text-foreground">
                 AI Forecast Scenarios
               </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 High-alert scenarios based on current risk analysis
               </p>
             </div>
@@ -325,21 +326,21 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
 
         {/* Supply Chain Selector - Only show if multiple supply chains */}
         {supplyChains && supplyChains.length > 1 && (
-          <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
-            <Network className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+          <div className="flex items-center gap-3 p-4 bg-card/40 backdrop-blur-md rounded-xl border border-border/40 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+            <Network className="w-5 h-5 text-primary" />
             <div className="flex items-center gap-3 flex-1">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-sm font-medium text-foreground">
                 Supply Chain:
               </label>
               <Select value={selectedSupplyChainId || ''} onValueChange={setSelectedSupplyChainId}>
-                <SelectTrigger className="w-[300px] bg-white dark:bg-slate-800">
+                <SelectTrigger className="w-[300px] bg-background">
                   <SelectValue placeholder="Select supply chain to view forecast scenarios" />
                 </SelectTrigger>
                 <SelectContent>
-                  {supplyChains.map((chain) => (
-                    <SelectItem key={chain.supply_chain_id} value={chain.supply_chain_id}>
+                  {supplyChains.map((chain, index) => (
+                    <SelectItem key={chain.supply_chain_id || `chain-sel-${index}`} value={chain.supply_chain_id}>
                       <div className="flex items-center gap-2">
-                        <Network className="h-4 w-4 text-slate-500" />
+                        <Network className="h-4 w-4 text-primary" />
                         {chain.name}
                       </div>
                     </SelectItem>
@@ -399,18 +400,18 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
               >
                 {/* High Alert Badge */}
                 <div className="absolute top-3 right-3 z-10">
-                  <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg">
+                  <Badge className="bg-theme-red text-white border-none font-bold uppercase tracking-widest text-[9px] px-2 py-0.5 rounded-theme-pill">
                     High Alert
                   </Badge>
                 </div>
 
                 <CardHeader className="pb-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <TypeIcon className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                    <div className="w-10 h-10 bg-primary/5 dark:bg-primary/10 border border-primary/10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <TypeIcon className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1 pr-8">
-                      <CardTitle className="text-base leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                      <CardTitle className="text-base leading-tight group-hover:text-primary transition-colors duration-300">
                         {scenario.scenarioName}
                       </CardTitle>
                       <CardDescription className="text-sm mt-1">
@@ -421,7 +422,7 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {scenario.description}
                   </p>
 
@@ -441,7 +442,7 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
                     </Badge>
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <BarChart3 className="w-3 h-3" />
                     {scenario.monteCarloRuns.toLocaleString()} simulations
                     {scenario.cascadeEnabled && (
@@ -458,10 +459,10 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
 
                 <CardFooter className="pt-0">
                   <Button
-                    className="w-full bg-purple-50 dark:bg-purple-900/30 border-purple-100 dark:border-purple-800 group-hover:bg-purple-100 dark:group-hover:bg-purple-800 group-hover:border-purple-300 dark:group-hover:border-purple-600 transition-colors"
-                    variant="outline"
+                    className="w-full bg-transparent border-transparent text-theme-blue hover:bg-theme-blue-soft hover:text-theme-blue hover:border-transparent transition-all duration-200 rounded-theme-md text-xs font-semibold shadow-none"
+                    variant="ghost"
                   >
-                    <Sparkles className="w-4 h-4 mr-2 text-purple-500 dark:text-purple-300" />
+                    <Sparkles className="w-3.5 h-3.5 mr-2 text-theme-blue" />
                     Use This Scenario
                   </Button>
                 </CardFooter>
@@ -475,17 +476,17 @@ export function ForecastScenarios({ onSelectScenario }: ForecastScenariosProps) 
       {!isLoading && scenarios.length === 0 && (
         <MinimalCard className="text-center py-12">
           <CardContent>
-            <Brain className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
+            <Brain className="w-16 h-16 text-primary/80 mx-auto mb-4 animate-pulse" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               No Forecast Scenarios Available
             </h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
+            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
               No forecast has been generated for this supply chain yet. Generate a forecast first to see scenarios here.
             </p>
             <Button 
               onClick={() => fetchScenarios(true)}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 rounded-xl"
             >
               <RefreshCw className="w-4 h-4" />
               Check Again

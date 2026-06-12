@@ -24,7 +24,7 @@ import { nodeTypeToIcon } from "@/components/digital-twin/utils/icon-mapping"
 const LabelWithTooltip = ({ 
   children, 
   tooltip, 
-  className = "text-base font-medium",
+  className = "text-sm font-[600] text-theme-text-primary",
   ...props 
 }: {
   children: React.ReactNode
@@ -32,16 +32,16 @@ const LabelWithTooltip = ({
   className?: string
   htmlFor?: string
 }) => (
-  <div className="flex items-center gap-2">
+  <div className="flex items-center gap-1.5">
     <Label className={className} {...props}>
       {children}
     </Label>
     <Tooltip>
       <TooltipTrigger asChild>
-        <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 cursor-help flex-shrink-0" />
+        <Info className="h-3.5 w-3.5 text-theme-text-muted hover:text-theme-blue cursor-help flex-shrink-0 transition-colors" />
       </TooltipTrigger>
-      <TooltipContent className="max-w-xs">
-        <p className="text-sm text-gray-600 dark:text-gray-300 font-normal">{tooltip}</p>
+      <TooltipContent className="max-w-xs bg-theme-bg-surface border border-theme-border-subtle text-theme-text-primary rounded-theme-md shadow-md">
+        <p className="text-[11px] leading-relaxed font-normal">{tooltip}</p>
       </TooltipContent>
     </Tooltip>
   </div>
@@ -53,7 +53,6 @@ export function ScenarioConfigurationForm() {
   const [isLoadingNodes, setIsLoadingNodes] = useState(false);
 
   useEffect(() => {
-    // Clear existing nodes and selection when the supply chain changes
     setNodes([]);
     updateScenarioData({ affectedNode: '' });
 
@@ -63,7 +62,7 @@ export function ScenarioConfigurationForm() {
         .then(setNodes)
         .catch(error => {
           console.error("Failed to fetch nodes:", error);
-          setNodes([]); // Reset on error
+          setNodes([]);
         })
         .finally(() => {
           setIsLoadingNodes(false);
@@ -71,12 +70,11 @@ export function ScenarioConfigurationForm() {
     }
   }, [selectedSupplyChainId, updateScenarioData]);
 
-  // Options for affected nodes multiselect
   const affectedNodeOptions = useMemo(() => 
     nodes
-      .filter(node => node.name) // Ensure node.name is not null
+      .filter(node => node.name)
       .map(node => ({
-        label: node.name!, // Non-null assertion as we've filtered
+        label: node.name!,
         value: node.node_id,
         icon: node.type ? nodeTypeToIcon[node.type] || Factory : Factory,
       })), [nodes]
@@ -88,18 +86,17 @@ export function ScenarioConfigurationForm() {
         {/* Main Configuration Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Basic Configuration Card - Left Side */}
-          <Card className="shadow-lg bg-white dark:bg-slate-950 border hover:shadow-xl transition-shadow duration-300">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-xl text-gray-800 dark:text-gray-100">
-                <CogIcon size={20} className="text-blue-500" />
+          <Card className="border border-theme-border-subtle bg-theme-bg-surface text-theme-text-primary shadow-sm rounded-theme-lg transition-all duration-300 hover:shadow-md">
+            <CardHeader className="pb-4 border-b border-theme-border-subtle/50">
+              <CardTitle className="flex items-center gap-2 text-base text-theme-text-primary font-bold">
+                <CogIcon size={18} className="text-theme-blue" />
                 Basic Configuration
               </CardTitle>
-              <CardDescription className=" text-sm text-gray-600 dark:text-gray-300">Configure your core scenario parameters</CardDescription>
+              <CardDescription className="text-xs text-theme-text-secondary">Configure your core scenario parameters</CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              {/* First Row: Two fields */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-3">
+            <CardContent className="p-6 space-y-5">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div className="space-y-2.5">
                   <LabelWithTooltip 
                     htmlFor="scenario-name"
                     tooltip="Give your scenario a descriptive name that clearly identifies the situation you want to simulate. For example: 'Port Strike Analysis', 'Supplier Factory Fire', or 'Pandemic Supply Chain Impact'."
@@ -108,14 +105,14 @@ export function ScenarioConfigurationForm() {
                   </LabelWithTooltip>
                   <Input
                     id="scenario-name"
-                    className="h-11 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
-                    placeholder="Enter scenario name (e.g., Port Strike Analysis)"
+                    className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
+                    placeholder="Enter scenario name"
                     value={scenarioData.scenarioName}
                     onChange={(e) => updateScenarioData({ scenarioName: e.target.value })}
                   />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <LabelWithTooltip 
                     tooltip="Select the category that best describes your scenario. This helps determine appropriate simulation parameters and analysis methods."
                   >
@@ -125,10 +122,10 @@ export function ScenarioConfigurationForm() {
                     value={scenarioData.scenarioType} 
                     onValueChange={(val) => updateScenarioData({ scenarioType: val })}
                   >
-                    <SelectTrigger className="h-11 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700">
+                    <SelectTrigger className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200">
                       <SelectValue placeholder="Select scenario type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-theme-bg-surface border-theme-border-subtle text-theme-text-primary rounded-theme-md">
                       <SelectItem value="disruption">Supply Disruption</SelectItem>
                       <SelectItem value="natural">Natural Disaster</SelectItem>
                       <SelectItem value="political">Political Event</SelectItem>
@@ -139,19 +136,18 @@ export function ScenarioConfigurationForm() {
                 </div>
               </div>
 
-              {/* Second Row: Two fields */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div className="space-y-2.5">
                   <LabelWithTooltip 
                     tooltip="Choose which supply chain you want to analyze. This determines the network structure, nodes, and relationships that will be used in your simulation."
                   >
                     Supply Chain
                   </LabelWithTooltip>
                   <Select value={selectedSupplyChainId || ''} onValueChange={setSelectedSupplyChainId}>
-                    <SelectTrigger className="h-11 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700">
+                    <SelectTrigger className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200">
                       <SelectValue placeholder="Select supply chain" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-theme-bg-surface border-theme-border-subtle text-theme-text-primary rounded-theme-md">
                       {supplyChains.map((chain) => (
                         <SelectItem key={chain.supply_chain_id} value={chain.supply_chain_id}>
                           {chain.name}
@@ -161,7 +157,7 @@ export function ScenarioConfigurationForm() {
                   </Select>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <LabelWithTooltip 
                     tooltip="Select the specific nodes (suppliers, warehouses, factories, etc.) that will be directly impacted by your scenario. You can select multiple nodes to simulate widespread disruptions."
                   >
@@ -172,7 +168,7 @@ export function ScenarioConfigurationForm() {
                     onValueChange={(values) => updateScenarioData({ affectedNode: values.join(',') })}
                     defaultValue={scenarioData.affectedNode ? scenarioData.affectedNode.split(',') : []}
                     placeholder={!selectedSupplyChainId ? "Select supply chain first" : isLoadingNodes ? "Loading nodes..." : "Select affected nodes"}
-                    className="shadow-md h-11 rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="shadow-sm min-h-10 text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
                     maxCount={3}
                     disabled={isLoadingNodes || !selectedSupplyChainId}
                   />
@@ -182,117 +178,110 @@ export function ScenarioConfigurationForm() {
           </Card>
 
           {/* Description and Impact Parameters Card - Right Side */}
-          <Card className="shadow-lg bg-white dark:bg-slate-950 border hover:shadow-xl transition-shadow duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-xl text-gray-800 dark:text-gray-100">
-                <FileTextIcon size={20} className="text-green-500" />
+          <Card className="border border-theme-border-subtle bg-theme-bg-surface text-theme-text-primary shadow-sm rounded-theme-lg transition-all duration-300 hover:shadow-md">
+            <CardHeader className="pb-4 border-b border-theme-border-subtle/50">
+              <CardTitle className="flex items-center gap-2 text-base text-theme-text-primary font-bold">
+                <FileTextIcon size={18} className="text-theme-green" />
                 Description & Impact Parameters
               </CardTitle>
-              <CardDescription className="text-sm text-gray-600 dark:text-gray-300">Describe your scenario and set disruption parameters</CardDescription>
+              <CardDescription className="text-xs text-theme-text-secondary">Describe your scenario and set disruption parameters</CardDescription>
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-6">
-                {/* Description - Full width */}
-                <div className="space-y-3">
+            <CardContent className="p-6 space-y-5">
+              <div className="space-y-2.5">
+                <LabelWithTooltip 
+                  tooltip="Provide a detailed description of your scenario including the cause, scope, and expected impact. This helps contextualize your simulation results and aids in interpretation."
+                >
+                  Description
+                </LabelWithTooltip>
+                <Textarea
+                  className="min-h-[85px] shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
+                  placeholder="Describe your scenario in detail"
+                  value={scenarioData.description}
+                  onChange={(e) => updateScenarioData({ description: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div className="space-y-2.5">
                   <LabelWithTooltip 
-                    tooltip="Provide a detailed description of your scenario including the cause, scope, and expected impact. This helps contextualize your simulation results and aids in interpretation."
+                    tooltip="Enter the percentage reduction in operational capacity (0-100%). For example: 75% means the affected nodes operate at only 25% of normal capacity during the disruption."
+                    className="flex items-center gap-1.5 text-xs font-[600] text-theme-text-primary"
                   >
-                    Description
+                    <TrendingUpIcon size={14} className="text-theme-blue" />
+                    Disruption Severity (%)
                   </LabelWithTooltip>
-                  <Textarea
-                    className="min-h-[90px] shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
-                    placeholder="Describe your scenario in detail (e.g., Major port strike affecting all shipping operations for 2 weeks...)"
-                    value={scenarioData.description}
-                    onChange={(e) => updateScenarioData({ description: e.target.value })}
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={1}
+                    className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
+                    value={scenarioData.disruptionSeverity || ''}
+                    onChange={(e) => updateScenarioData({ disruptionSeverity: e.target.value ? Number(e.target.value) : 0 })}
+                    placeholder="e.g., 75"
                   />
                 </div>
 
-                {/* Impact Parameters - Side by side */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                                         <LabelWithTooltip 
-                       tooltip="Enter the percentage reduction in operational capacity (0-100%). For example: 75% means the affected nodes operate at only 25% of normal capacity during the disruption."
-                       className="flex items-center gap-2 text-base font-medium"
-                     >
-                       <TrendingUpIcon size={16} />
-                       Disruption Severity (%)
-                     </LabelWithTooltip>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      step={1}
-                      className="h-11 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
-                      value={scenarioData.disruptionSeverity || ''}
-                      onChange={(e) => updateScenarioData({ disruptionSeverity: e.target.value ? Number(e.target.value) : 0 })}
-                      placeholder="Enter severity percentage (e.g., 75)"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                                         <LabelWithTooltip 
-                       tooltip="Specify how long the disruption will last in days. This affects the total impact on your supply chain and recovery time calculations."
-                       className="flex items-center gap-2 text-base font-medium"
-                     >
-                       <ClockIcon size={16} />
-                       Disruption Duration (days)
-                     </LabelWithTooltip>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={365}
-                      step={1}
-                      className="h-11 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
-                      value={scenarioData.disruptionDuration || ''}
-                      onChange={(e) => updateScenarioData({ disruptionDuration: e.target.value ? Number(e.target.value) : 0 })}
-                      placeholder="Enter duration in days (e.g., 14)"
-                    />
-                  </div>
+                <div className="space-y-2.5">
+                  <LabelWithTooltip 
+                    tooltip="Specify how long the disruption will last in days. This affects the total impact on your supply chain and recovery time calculations."
+                    className="flex items-center gap-1.5 text-xs font-[600] text-theme-text-primary"
+                  >
+                    <ClockIcon size={14} className="text-theme-blue" />
+                    Disruption Duration (days)
+                  </LabelWithTooltip>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={365}
+                    step={1}
+                    className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
+                    value={scenarioData.disruptionDuration || ''}
+                    onChange={(e) => updateScenarioData({ disruptionDuration: e.target.value ? Number(e.target.value) : 0 })}
+                    placeholder="e.g., 14"
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Advanced Settings Card - Mandatory */}
-        <Card className="shadow-lg bg-white dark:bg-slate-950 border hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-xl text-gray-800 dark:text-gray-100">
-              <SettingsIcon size={20} className="text-purple-500" />
+        {/* Advanced Settings Card */}
+        <Card className="border border-theme-border-subtle bg-theme-bg-surface text-theme-text-primary shadow-sm rounded-theme-lg transition-all duration-300 hover:shadow-md">
+          <CardHeader className="pb-4 border-b border-theme-border-subtle/50">
+            <CardTitle className="flex items-center gap-2 text-base text-theme-text-primary font-bold">
+              <SettingsIcon size={18} className="text-theme-blue" />
               Advanced Settings
             </CardTitle>
-            <CardDescription className="text-sm text-gray-600 dark:text-gray-300">Configure advanced simulation parameters</CardDescription>
+            <CardDescription className="text-xs text-theme-text-secondary">Configure advanced simulation parameters</CardDescription>
           </CardHeader>
-          <CardContent className="pt-4">
-            {/* Advanced Configuration - Better Grouped */}
+          <CardContent className="p-6 space-y-6">
             <div className="space-y-6">
-              {/* First Row - Simulation Parameters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Monte Carlo Runs */}
-                <div className="space-y-3">
-                                     <LabelWithTooltip 
-                     className="flex items-center gap-2 text-sm font-medium"
-                     tooltip="Number of simulation iterations to run. Higher values provide more accurate results but take longer to compute. Recommended: 1000-10000 for most scenarios."
-                   >
-                     <Calculator className="h-4 w-4" />
-                     Monte Carlo Runs
-                   </LabelWithTooltip>
+              {/* Simulation Parameters Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div className="space-y-2.5">
+                  <LabelWithTooltip 
+                    className="flex items-center gap-1.5 text-xs font-[600] text-theme-text-primary"
+                    tooltip="Number of simulation iterations to run. Higher values provide more accurate results but take longer to compute. Recommended: 1000-10000 for most scenarios."
+                  >
+                    <Calculator className="h-3.5 w-3.5 text-theme-blue" />
+                    Monte Carlo Runs
+                  </LabelWithTooltip>
                   <Input
                     type="number"
                     min={100}
                     max={50000}
                     step={100}
-                    className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
                     value={scenarioData.monteCarloRuns || ''}
                     onChange={(e) => updateScenarioData({ monteCarloRuns: e.target.value ? Number(e.target.value) : 0 })}
                     placeholder="e.g., 1000"
                   />
                 </div>
 
-                {/* Distribution Type */}
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <LabelWithTooltip 
-                    className="text-sm font-medium"
+                    className="text-xs font-[600] text-theme-text-primary"
                     tooltip="Statistical distribution used for random variables in the simulation. Normal is most common, Uniform for equal probability ranges, Exponential for failure rates."
                   >
                     Distribution Type
@@ -301,10 +290,10 @@ export function ScenarioConfigurationForm() {
                     value={scenarioData.distributionType} 
                     onValueChange={(val) => updateScenarioData({ distributionType: val })}
                   >
-                    <SelectTrigger className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700">
+                    <SelectTrigger className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200">
                       <SelectValue placeholder="Select distribution" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-theme-bg-surface border-theme-border-subtle text-theme-text-primary rounded-theme-md">
                       <SelectItem value="normal">Normal</SelectItem>
                       <SelectItem value="uniform">Uniform</SelectItem>
                       <SelectItem value="exponential">Exponential</SelectItem>
@@ -314,42 +303,40 @@ export function ScenarioConfigurationForm() {
                   </Select>
                 </div>
 
-                {/* Failure Threshold */}
-                <div className="space-y-3">
-                                     <LabelWithTooltip 
-                     className="flex items-center gap-2 text-sm font-medium"
-                     tooltip="Percentage threshold at which a node is considered failed (0-100%). When a node's capacity drops below this level, it triggers additional effects and potential cascading failures."
-                   >
-                     <AlertTriangle className="h-4 w-4" />
-                     Failure Threshold (%)
-                   </LabelWithTooltip>
+                <div className="space-y-2.5">
+                  <LabelWithTooltip 
+                    className="flex items-center gap-1.5 text-xs font-[600] text-theme-text-primary"
+                    tooltip="Percentage threshold at which a node is considered failed (0-100%). When a node's capacity drops below this level, it triggers additional effects and potential cascading failures."
+                  >
+                    <AlertTriangle className="h-3.5 w-3.5 text-theme-amber" />
+                    Failure Threshold (%)
+                  </LabelWithTooltip>
                   <Input
                     type="number"
                     min={0}
                     max={100}
                     step={5}
-                    className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
                     value={scenarioData.failureThreshold || ''}
                     onChange={(e) => updateScenarioData({ failureThreshold: e.target.value ? Number(e.target.value) : 0 })}
                     placeholder="e.g., 30"
                   />
                 </div>
 
-                {/* Inventory Buffer */}
-                <div className="space-y-3">
-                                     <LabelWithTooltip 
-                     className="flex items-center gap-2 text-sm font-medium"
-                     tooltip="Additional inventory buffer as a percentage of normal stock levels (0-200%). Higher buffers provide more resilience but increase costs. Typical range: 10-50%."
-                   >
-                     <ShieldCheckIcon size={16} />
-                     Inventory Buffer (%)
-                   </LabelWithTooltip>
+                <div className="space-y-2.5">
+                  <LabelWithTooltip 
+                    className="flex items-center gap-1.5 text-xs font-[600] text-theme-text-primary"
+                    tooltip="Additional inventory buffer as a percentage of normal stock levels (0-200%). Higher buffers provide more resilience but increase costs. Typical range: 10-50%."
+                  >
+                    <ShieldCheckIcon size={14} className="text-theme-green" />
+                    Inventory Buffer (%)
+                  </LabelWithTooltip>
                   <Input
                     type="number"
                     min={0}
                     max={200}
                     step={5}
-                    className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
                     value={scenarioData.bufferPercent || ''}
                     onChange={(e) => updateScenarioData({ bufferPercent: e.target.value ? Number(e.target.value) : 0 })}
                     placeholder="e.g., 20"
@@ -357,54 +344,51 @@ export function ScenarioConfigurationForm() {
                 </div>
               </div>
 
-              {/* Second Row - Date Parameters and Random Seed */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Start Date */}
-                <div className="space-y-3">
-                                     <LabelWithTooltip 
-                     className="flex items-center gap-2 text-sm font-medium"
-                     tooltip="When the disruption begins. This affects seasonal factors, demand patterns, and other time-dependent variables in your supply chain model."
-                   >
-                     <CalendarDaysIcon size={16} />
-                     Start Date & Time
-                   </LabelWithTooltip>
+              {/* Date parameters and random seed */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="space-y-2.5">
+                  <LabelWithTooltip 
+                    className="flex items-center gap-1.5 text-xs font-[600] text-theme-text-primary"
+                    tooltip="When the disruption begins. This affects seasonal factors, demand patterns, and other time-dependent variables in your supply chain model."
+                  >
+                    <CalendarDaysIcon size={14} className="text-theme-blue" />
+                    Start Date & Time
+                  </LabelWithTooltip>
                   <DatePicker
                     date={scenarioData.startDate ? new Date(scenarioData.startDate) : undefined}
                     onSelect={(date: Date | undefined) => updateScenarioData({ startDate: date ? date.toISOString().slice(0, 16) : '' })}
                     placeholder="Select start date and time"
-                    className="h-10 shadow-md text-base w-full rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-sm text-xs w-full rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
                     showTime={true}
                   />
                 </div>
 
-                {/* End Date */}
-                <div className="space-y-3">
-                                     <LabelWithTooltip 
-                     className="flex items-center gap-2 text-sm font-medium"
-                     tooltip="When the disruption ends and normal operations resume. The simulation will continue beyond this date to analyze recovery time and long-term effects."
-                   >
-                     <CalendarDaysIcon size={16} />
-                     End Date & Time
-                   </LabelWithTooltip>
+                <div className="space-y-2.5">
+                  <LabelWithTooltip 
+                    className="flex items-center gap-1.5 text-xs font-[600] text-theme-text-primary"
+                    tooltip="When the disruption ends and normal operations resume. The simulation will continue beyond this date to analyze recovery time and long-term effects."
+                  >
+                    <CalendarDaysIcon size={14} className="text-theme-blue" />
+                    End Date & Time
+                  </LabelWithTooltip>
                   <DatePicker
                     date={scenarioData.endDate ? new Date(scenarioData.endDate) : undefined}
                     onSelect={(date: Date | undefined) => updateScenarioData({ endDate: date ? date.toISOString().slice(0, 16) : '' })}
                     placeholder="Select end date and time"
-                    className="h-10 shadow-md text-base w-full rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-sm text-xs w-full rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
                     showTime={true}
                   />
                 </div>
 
-                {/* Random Seed */}
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <LabelWithTooltip 
-                    className="text-sm font-medium"
+                    className="text-xs font-[600] text-theme-text-primary"
                     tooltip="Optional number to ensure reproducible results. Use the same seed to get identical simulation outcomes for comparison purposes. Leave blank for random results."
                   >
                     Random Seed
                   </LabelWithTooltip>
                   <Input
-                    className="h-10 shadow-md text-base rounded-xl dark:bg-gray-800 dark:border-gray-700"
+                    className="h-10 shadow-sm text-xs rounded-theme-md bg-theme-bg-surface border-theme-border-subtle hover:border-theme-border-default focus:ring-2 focus:ring-theme-blue/30 focus:border-theme-blue focus:outline-none transition-all duration-200"
                     placeholder="Enter seed (optional)"
                     value={scenarioData.randomSeed || ''}
                     onChange={(e) => updateScenarioData({ randomSeed: e.target.value })}
@@ -413,42 +397,42 @@ export function ScenarioConfigurationForm() {
               </div>
             </div>
 
-            {/* Simulation Features - Well Spaced */}
-            <div className="pt-6 ">
+            {/* Simulation Features switches */}
+            <div className="pt-6 border-t border-theme-border-subtle/50 mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                                     <LabelWithTooltip 
-                     className="flex items-center gap-2 text-sm font-medium"
-                     tooltip="When enabled, failures can spread from affected nodes to connected nodes based on dependency relationships. This simulates how disruptions can propagate through your supply chain network."
-                   >
-                     <Zap className="h-4 w-4 text-orange-500" />
-                     Cascading Failures
-                   </LabelWithTooltip>
+                <div className="space-y-2.5">
+                  <LabelWithTooltip 
+                    className="flex items-center gap-1.5 text-xs font-[600] text-theme-text-primary"
+                    tooltip="When enabled, failures can spread from affected nodes to connected nodes based on dependency relationships. This simulates how disruptions can propagate through your supply chain network."
+                  >
+                    <Zap className="h-4 w-4 text-theme-amber animate-pulse" />
+                    Cascading Failures
+                  </LabelWithTooltip>
                   <div className="flex items-center">
                     <Switch
                       checked={scenarioData.cascadeEnabled || false}
                       onCheckedChange={(val) => updateScenarioData({ cascadeEnabled: val })}
                     />
-                    <span className="ml-2 text-sm text-muted-foreground">
+                    <span className="ml-2.5 text-xs text-theme-text-secondary font-medium">
                       {scenarioData.cascadeEnabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                                     <LabelWithTooltip 
-                     className="flex items-center gap-2 text-sm font-medium"
-                     tooltip="When enabled, the system will automatically find alternative routes and suppliers when primary paths are disrupted. This represents your supply chain's adaptive capabilities."
-                   >
-                     <RouteIcon size={16} className="text-blue-500" />
-                     Alternate Routing
-                   </LabelWithTooltip>
+                <div className="space-y-2.5">
+                  <LabelWithTooltip 
+                    className="flex items-center gap-1.5 text-xs font-[600] text-theme-text-primary"
+                    tooltip="When enabled, the system will automatically find alternative routes and suppliers when primary paths are disrupted. This represents your supply chain's adaptive capabilities."
+                  >
+                    <RouteIcon size={14} className="text-theme-blue" />
+                    Alternate Routing
+                  </LabelWithTooltip>
                   <div className="flex items-center">
                     <Switch
                       checked={scenarioData.alternateRouting || false}
                       onCheckedChange={(val) => updateScenarioData({ alternateRouting: val })}
                     />
-                    <span className="ml-2 text-sm text-muted-foreground">
+                    <span className="ml-2.5 text-xs text-theme-text-secondary font-medium">
                       {scenarioData.alternateRouting ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
@@ -460,4 +444,4 @@ export function ScenarioConfigurationForm() {
       </div>
     </TooltipProvider>
   )
-} 
+}

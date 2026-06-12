@@ -58,7 +58,7 @@ export const TransportEdge = ({
         id={id}
         style={{
           strokeWidth: isDisrupted ? 4 : 2,
-          stroke: isDisrupted ? '#ef4444' : '#64748b',
+          stroke: isDisrupted ? 'var(--accent-red)' : 'var(--border-default)',
           strokeDasharray: isDisrupted ? '5,5' : 'none',
           animation: isDisrupted ? 'dashdraw 1s linear infinite' : 'none',
           ...style
@@ -71,29 +71,35 @@ export const TransportEdge = ({
             position: 'absolute',
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
             pointerEvents: 'all',
-            backgroundColor: 'white',
-            padding: selected ? '6px 12px' : '4px 8px',
-            borderRadius: '8px',
-            fontSize: '14px',
+            backgroundColor: 'var(--bg-surface)',
+            color: 'var(--text-primary)',
+            padding: selected ? '6px 12px' : '0',
+            width: selected ? 'auto' : '20px',
+            height: selected ? 'auto' : '20px',
+            borderRadius: selected ? '6px' : '50%',
+            fontSize: selected ? '13px' : '11px',
             fontWeight: 500,
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: 'var(--shadow-sm)',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: '6px',
-            minWidth: 'max-content'
+            minWidth: selected ? 'max-content' : '20px'
           }}
-          className="nodrag nopan"
+          className="nodrag nopan hover:border-theme-blue/50 transition-colors"
         >
-          <span style={{ fontSize: '16px' }}>{transportInfo.emoji}</span>
-          {selected && <span style={{ color: '#374151' }}>{transportInfo.text}</span>}
+          <span style={{ fontSize: selected ? '14px' : '11px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {transportInfo.emoji}
+          </span>
+          {selected && <span style={{ color: 'var(--text-primary)' }}>{transportInfo.text}</span>}
           
           {selected && (
             <div style={{ 
-              fontSize: '12px', 
-              color: '#6b7280',
+              fontSize: '11px', 
+              color: 'var(--text-muted)',
               marginLeft: '8px',
-              borderLeft: '1px solid #e2e8f0',
+              borderLeft: '1px solid var(--border-subtle)',
               paddingLeft: '8px'
             }}>
               <div>💰 ${data?.cost || 0}</div>

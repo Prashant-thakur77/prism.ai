@@ -148,10 +148,10 @@ export function LandingHeader() {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out ${
         isScrolled 
-          ? "bg-[#FAFBFF]/85 backdrop-blur-[20px] border-b border-black/[0.06]" 
-          : "bg-transparent border-transparent"
+          ? "bg-[#F7F4EF]/85 backdrop-blur-[12px] border-b border-[#E8E3DC]" 
+          : "bg-transparent border-b border-transparent"
       }`}
     >
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -164,13 +164,13 @@ export function LandingHeader() {
             onClick={(e) => smoothScroll(e, 'top')}
             className="flex items-center gap-2.5 group"
           >
-            <div className="relative flex items-center justify-center p-2 rounded-xl bg-gradient-to-br from-[#2563EB]/10 to-[#7C3AED]/10 border border-[#2563EB]/15 shadow-[0_2px_12px_rgba(37,99,235,0.1)]">
-              <svg className="w-5 h-5 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="relative flex items-center justify-center p-2 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/15 shadow-[0_2px_12px_rgba(11,79,255,0.05)]">
+              <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
               </svg>
             </div>
-            <span className="font-bold text-xl text-[#0F172A] tracking-tight">
+            <span className="font-bold text-xl text-foreground tracking-tight">
               PRISM
             </span>
           </a>
@@ -181,7 +181,7 @@ export function LandingHeader() {
           <div className="relative flex items-center gap-1" ref={navRef}>
             {pillStyle.opacity > 0 && (
               <motion.div
-                className="absolute top-0 bottom-0 bg-[#2563EB]/[0.08] rounded-full"
+                className="absolute top-0 bottom-0 bg-primary/[0.08] rounded-full"
                 animate={{ width: pillStyle.width, x: pillStyle.x }}
                 transition={{ type: "spring", stiffness: 400, damping: 35 }}
               />
@@ -194,7 +194,7 @@ export function LandingHeader() {
                     data-nav-item={item.id}
                     onClick={() => setActiveSection(item.id)}
                     className={`block px-4 py-2 text-sm font-medium rounded-full transition-colors ${
-                      activeSection === item.id ? "text-[#2563EB]" : "text-[#64748B] hover:text-[#0F172A]"
+                      activeSection === item.id ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {item.label}
@@ -205,7 +205,7 @@ export function LandingHeader() {
                     data-nav-item={item.id}
                     onClick={(e) => smoothScroll(e, item.id)}
                     className={`block px-4 py-2 text-sm font-medium rounded-full transition-colors ${
-                      activeSection === item.id ? "text-[#2563EB]" : "text-[#64748B] hover:text-[#0F172A]"
+                      activeSection === item.id ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {item.label}
@@ -218,7 +218,7 @@ export function LandingHeader() {
 
         <div className="flex items-center gap-4">
           <motion.button
-            className="md:hidden p-2 text-[#64748B] hover:bg-black/5 rounded-lg transition-colors"
+            className="md:hidden p-2 text-muted-foreground hover:bg-accent rounded-lg transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -230,7 +230,7 @@ export function LandingHeader() {
           >
             <Link
               href="/dashboard"
-              className="hidden md:flex items-center justify-center px-6 py-2 rounded-full font-medium text-sm text-white bg-gradient-to-r from-[#2563EB] to-[#7C3AED] shadow-[0_2px_12px_rgba(37,99,235,0.25)] hover:shadow-[0_4px_16px_rgba(37,99,235,0.35)] transition-all"
+              className="hidden md:flex items-center justify-center px-6 py-2 rounded-full font-medium text-sm text-white bg-gradient-to-r from-primary to-primary/80 shadow-[0_2px_12px_rgba(11,79,255,0.15)] hover:shadow-[0_4px_16px_rgba(11,79,255,0.25)] transition-all"
             >
               Request Access
             </Link>
@@ -240,7 +240,7 @@ export function LandingHeader() {
             <div ref={profileDropdownRef} className="relative hidden md:block">
               <motion.button
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#2563EB] to-[#7C3AED] text-white shadow-md hover:shadow-lg transition-all"
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary/80 text-white shadow-md hover:shadow-lg transition-all"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -254,24 +254,24 @@ export function LandingHeader() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 top-12 w-48 bg-white/95 backdrop-blur-md border border-black/5 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden z-50"
+                    className="absolute right-0 top-12 w-48 bg-popover/95 backdrop-blur-md border border-border/40 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden z-50"
                   >
                     <div className="py-2">
                       <Link
                         href="/dashboard"
                         onClick={() => setProfileDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#0F172A] hover:bg-black/5 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
                       >
-                        <LayoutDashboard className="h-4 w-4 text-[#2563EB]" />
+                        <LayoutDashboard className="h-4 w-4 text-primary" />
                         Dashboard
                       </Link>
-                      <div className="h-px bg-black/5 mx-2 my-1" />
+                      <div className="h-px bg-border/40 mx-2 my-1" />
                       <div
                         onClick={() => {
                           setProfileDropdownOpen(false);
                           logout();
                         }}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-500/10 transition-colors cursor-pointer"
                       >
                         <LogOut className="h-4 w-4" />
                         Sign Out
@@ -291,7 +291,7 @@ export function LandingHeader() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white/95 backdrop-blur-md border-b border-black/[0.06] overflow-hidden"
+            className="md:hidden bg-background/95 backdrop-blur-md border-b border-border/40 overflow-hidden"
           >
             <div className="container mx-auto px-4 py-4 space-y-2">
               {navLinks.map((item) => (
@@ -300,7 +300,7 @@ export function LandingHeader() {
                     <Link
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-3 rounded-lg text-sm font-medium text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F6FD] transition-colors"
+                      className="block px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                     >
                       {item.label}
                     </Link>
@@ -311,7 +311,7 @@ export function LandingHeader() {
                         smoothScroll(e, item.id);
                         setMobileMenuOpen(false);
                       }}
-                      className="block px-4 py-3 rounded-lg text-sm font-medium text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F6FD] transition-colors"
+                      className="block px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                     >
                       {item.label}
                     </a>
@@ -321,7 +321,7 @@ export function LandingHeader() {
               <div className="pt-2">
                 <Link
                   href="/dashboard"
-                  className="block w-full text-center px-4 py-3 rounded-xl font-medium text-sm text-white bg-gradient-to-r from-[#2563EB] to-[#7C3AED] shadow-md"
+                  className="block w-full text-center px-4 py-3 rounded-xl font-medium text-sm text-white bg-gradient-to-r from-primary to-primary/80 shadow-md"
                 >
                   Request Access
                 </Link>

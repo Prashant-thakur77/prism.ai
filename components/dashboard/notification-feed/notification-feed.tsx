@@ -377,9 +377,9 @@ export function NotificationFeed() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h3 className="font-medium text-gray-900 dark:text-gray-100">Notifications</h3>
+            <h3 className="font-semibold text-foreground">Notifications</h3>
             {unreadCount > 0 && (
-              <Badge variant="secondary" className="bg-black text-white dark:bg-white dark:text-black border-none text-xs">
+              <Badge variant="secondary" className="bg-primary text-primary-foreground border-none text-xs rounded-full">
                 {unreadCount} new
               </Badge>
             )}
@@ -418,24 +418,31 @@ export function NotificationFeed() {
 
                 return (
                   <motion.div
-                    key={notification.notification_id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    key={notification.notification_id || index}
                     className={cn(
-                      "rounded-lg border p-4 transition-all duration-200 hover:shadow-md cursor-pointer",
+                      "relative pl-7 py-4 pr-5 border rounded-theme-md transition-all duration-200 cursor-pointer flex flex-col mb-2",
                       isRead 
-                        ? "bg-white dark:bg-black border-gray-200 dark:border-gray-800 opacity-80" 
-                        : "bg-gray-50 dark:bg-gray-900 border-black dark:border-white shadow-sm"
+                        ? "bg-theme-bg-surface/50 border-theme-border-subtle/50 opacity-60" 
+                        : "bg-theme-bg-surface border-theme-border-subtle hover:bg-theme-bg-secondary hover:border-theme-border-default hover:shadow-md"
                     )}
                     onClick={() => handleViewDetails(notification)}
                   >
+                    {/* Left accent bar */}
+                    <div className={cn(
+                      "absolute left-0 top-0 bottom-0 w-[3px]",
+                      isRead ? "bg-theme-text-muted/30" : (
+                        notification.severity === 'HIGH' 
+                          ? "bg-theme-red" 
+                          : notification.severity === 'MEDIUM'
+                          ? "bg-theme-amber"
+                          : "bg-theme-blue"
+                      )
+                    )} />
                     {/* Main content */}
                     <div className="flex items-start gap-4 mb-3">
                       {/* Icon */}
                       <div className="flex-shrink-0">
-                        <div className="rounded-full p-2 bg-gray-100 dark:bg-gray-800">
+                        <div className="rounded-full p-2 bg-theme-bg-secondary">
                           {renderNotificationIcon(notification)}
                         </div>
                       </div>
@@ -444,36 +451,37 @@ export function NotificationFeed() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900 dark:text-gray-100 text-base leading-relaxed">{notification.title}</p>
+                            <p className="font-[600] text-theme-text-primary text-[0.88rem] leading-[1.4]">{notification.title}</p>
                             {/* Visual indicator for Live News */}
                             {notification.notification_type === 'live_news_alert' && (
-                                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 text-[10px] uppercase font-bold tracking-wider w-fit shrink-0">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></div>
+                                <div className="inline-flex items-center gap-1.5 px-[8px] py-[2px] rounded-theme-pill bg-theme-blue-soft border border-theme-blue/20 text-theme-blue text-[0.65rem] font-[700] tracking-[0.05em] uppercase w-fit shrink-0">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-theme-blue animate-pulse"></div>
                                     Live News
                                 </div>
                             )}
                             {!isRead && (
-                              <span className="h-2 w-2 rounded-full bg-black dark:bg-white flex-shrink-0 mt-1"></span>
+                              <span className="h-2 w-2 rounded-full bg-theme-blue flex-shrink-0 mt-1"></span>
                             )}
                           </div>
                           
                           <div className="flex items-center gap-3 flex-shrink-0">
                             {notification.severity && (
-                              <Badge variant="outline" className={`text-xs px-2 py-1 font-medium ${
+                              <span className={cn(
+                                "text-[0.65rem] font-[700] tracking-[0.05em] py-[2px] px-[8px] rounded-theme-pill border border-transparent",
                                 notification.severity === 'HIGH' 
-                                  ? 'bg-black dark:bg-white text-white dark:text-black border-transparent' 
+                                  ? 'bg-theme-red/10 text-theme-red' 
                                   : notification.severity === 'MEDIUM'
-                                  ? 'bg-gray-200 dark:bg-gray-800 text-black dark:text-white border-transparent'
-                                  : 'bg-white dark:bg-black text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800'
-                              }`}>
+                                  ? 'bg-theme-bg-secondary text-theme-text-secondary'
+                                  : 'bg-theme-blue-soft text-theme-blue'
+                              )}>
                                 {notification.severity}
-                              </Badge>
+                              </span>
                             )}
                             {!isRead && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                                className="h-6 w-6 p-0 rounded-full hover:bg-theme-bg-secondary text-theme-text-secondary"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleMarkAsRead(notification.notification_id)
@@ -486,14 +494,14 @@ export function NotificationFeed() {
                         </div>
                         
                         {truncatedMessage && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3 line-clamp-2">{truncatedMessage}</p>
+                          <p className="text-sm text-theme-text-secondary leading-relaxed mb-3 line-clamp-2">{truncatedMessage}</p>
                         )}
 
                         {/* Simplified metadata row */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             {getTypeIcon(type)}
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-xs text-theme-text-muted">
                               {notification.created_at && safeDateFormat(notification.created_at) || "Unknown time"}
                             </p>
                             
@@ -506,7 +514,7 @@ export function NotificationFeed() {
                               
                               if (sourceCount > 0 || entityCount > 0 || relationshipCount > 0) {
                                 return (
-                                  <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                  <div className="flex items-center gap-1 text-xs text-theme-text-muted">
                                     <span>•</span>
                                     {sourceCount > 0 && <span>{sourceCount} sources</span>}
                                     {entityCount > 0 && sourceCount > 0 && <span>•</span>}
@@ -520,18 +528,16 @@ export function NotificationFeed() {
                             })()}
                           </div>
                           
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 underline underline-offset-2"
+                          <button
+                            className="h-7 px-2 text-[0.78rem] text-theme-blue font-[500] hover:text-theme-blue/80 transition-colors flex items-center gap-1 bg-transparent border-none cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleViewDetails(notification)
                             }}
                           >
                             View Details
-                            <ArrowRight className="h-3 w-3 ml-1" />
-                          </Button>
+                            <ArrowRight className="h-3 w-3" />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -541,7 +547,7 @@ export function NotificationFeed() {
                       const citations = notification.citations as NotificationCitations | null
                       if (citations?.sources && citations.sources.length > 0) {
                         return (
-                          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                          <div className="mt-3 pt-3 border-t border-theme-border-subtle">
                             <div className="flex flex-wrap gap-2">
                               {/* Show first 2 sources */}
                               {citations.sources.slice(0, 2).map((source, idx) => (
@@ -549,7 +555,7 @@ export function NotificationFeed() {
                               ))}
                               {/* Show count if more than 2 sources */}
                               {citations.sources.length > 2 && (
-                                <div className="inline-flex items-center px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-md border border-gray-200 dark:border-gray-700">
+                                <div className="inline-flex items-center px-[8px] py-[3px] rounded-theme-sm border border-theme-border-subtle bg-theme-bg-secondary text-[0.72rem] text-theme-text-secondary">
                                   +{citations.sources.length - 2} more sources
                                 </div>
                               )}
@@ -594,7 +600,7 @@ export function NotificationFeed() {
     <div className="p-4">
       {/* Main Tab Navigation */}
       <div className="flex items-center justify-between mb-6">
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-1 flex space-x-1 w-fit">
+        <div className="bg-theme-bg-secondary border border-theme-border-subtle rounded-theme-pill p-[3px] flex space-x-1 w-fit">
           {[
             { id: "alerts" as MainTab, label: "Real-Time Alerts" },
             { id: "activity" as MainTab, label: "Recent Activity" },
@@ -602,10 +608,10 @@ export function NotificationFeed() {
             <motion.button
               key={tab.id}
               onClick={() => setActiveMainTab(tab.id)}
-              className={`relative px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
+              className={`relative px-[16px] py-[6px] rounded-theme-pill text-[0.82rem] font-[600] transition-colors duration-200 ${
                 activeMainTab === tab.id
-                  ? "bg-black text-white dark:bg-white dark:text-black"
-                  : "text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white"
+                  ? "bg-theme-text-primary text-theme-bg-primary"
+                  : "text-theme-text-muted hover:text-theme-text-primary"
               }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -614,12 +620,13 @@ export function NotificationFeed() {
             </motion.button>
           ))}
         </div>
-        <Button variant="link" asChild>
-          <Link href="/news-room" className="flex items-center text-sm">
-            View Real-Time Alerts
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </Link>
-        </Button>
+        <Link 
+          href="/news-room" 
+          className="text-[0.82rem] text-theme-blue font-[500] hover:text-theme-blue/80 hover:underline underline-offset-4 transition-colors flex items-center gap-1"
+        >
+          View Real-Time Alerts
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
       {/* Tab Content */}
@@ -669,28 +676,29 @@ export function NotificationFeed() {
 
       {/* Notification Details Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-theme-bg-glass backdrop-blur-[16px] saturate-[180%] border border-theme-border-subtle/50 shadow-lg">
           {selectedNotification && (
             <>
               <DialogHeader>
                 <div className="flex items-center gap-2">
-                  <div className="rounded-full p-1.5 bg-gray-100 dark:bg-gray-800">
+                  <div className="rounded-full p-1.5 bg-theme-bg-secondary">
                     {renderNotificationIcon(selectedNotification)}
                   </div>
-                  <DialogTitle className="text-lg font-semibold">{selectedNotification.title}</DialogTitle>
+                  <DialogTitle className="text-lg font-semibold text-theme-text-primary">{selectedNotification.title}</DialogTitle>
                   {selectedNotification.severity && (
-                    <Badge variant="outline" className={`text-xs px-2 py-0.5 ${
+                    <span className={cn(
+                      "text-[0.65rem] font-[700] tracking-[0.05em] py-[2px] px-[8px] rounded-theme-pill border border-transparent",
                       selectedNotification.severity === 'HIGH' 
-                        ? 'bg-black dark:bg-white text-white dark:text-black border-transparent' 
+                        ? 'bg-theme-red/10 text-theme-red' 
                         : selectedNotification.severity === 'MEDIUM'
-                        ? 'bg-gray-200 dark:bg-gray-800 text-black dark:text-white border-transparent'
-                        : 'bg-white dark:bg-black text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800'
-                    }`}>
+                        ? 'bg-theme-bg-secondary text-theme-text-secondary'
+                        : 'bg-theme-blue-soft text-theme-blue'
+                    )}>
                       {selectedNotification.severity}
-                    </Badge>
+                    </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-theme-text-muted">
                   {getTypeIcon(getNotificationType(selectedNotification))}
                   <span>{selectedNotification.created_at && safeDateFormat(selectedNotification.created_at) || "Unknown time"}</span>
                   <span>•</span>
@@ -702,9 +710,9 @@ export function NotificationFeed() {
                 {/* Full Message */}
                 {selectedNotification.message && (
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Details</h4>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    <h4 className="font-[600] text-theme-text-primary mb-2">Details</h4>
+                    <div className="bg-theme-bg-secondary/40 border border-theme-border-subtle rounded-theme-md p-4">
+                      <p className="text-sm text-theme-text-secondary leading-relaxed whitespace-pre-wrap">
                         {selectedNotification.message}
                       </p>
                     </div>

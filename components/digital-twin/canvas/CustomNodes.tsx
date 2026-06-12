@@ -4,35 +4,38 @@ import { useDigitalTwinStore } from '@/lib/digitalTwinStore';
 
 // Base styles for all nodes
 const baseNodeStyle = {
-  padding: '10px',
+  padding: '12px 14px',
   borderRadius: '8px',
-  width: '150px',
-  boxShadow: '0 4px 6px rgba(40, 0, 10, 0.1)',
-  border: '2px solid #e2e8f0'
+  width: '165px',
+  boxShadow: 'var(--shadow-sm)',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  fontFamily: 'inherit',
+  transition: 'all 0.2s ease'
 };
 
-// Node type specific colors with more distinct color schemes (fallback colors)
+// Node type specific colors with more distinct color schemes
 const nodeTypeColors = {
-  supplier: 'bg-blue-100 border-blue-500 text-blue-800',
-  factory: 'bg-purple-100 border-purple-500 text-purple-800',
-  port: 'bg-cyan-100 border-cyan-500 text-cyan-800',
-  warehouse: 'bg-amber-100 border-amber-500 text-amber-800',
-  distribution: 'bg-emerald-100 border-emerald-500 text-emerald-800',
-  retailer: 'bg-red-100 border-red-500 text-red-800',
-  manufacturer: 'bg-orange-100 border-orange-500 text-orange-800'
+  supplier: 'bg-theme-bg-surface border-theme-border-subtle hover:border-theme-blue/40 text-theme-text-primary',
+  factory: 'bg-theme-bg-surface border-theme-border-subtle hover:border-purple-500/40 text-theme-text-primary',
+  port: 'bg-theme-bg-surface border-theme-border-subtle hover:border-cyan-500/40 text-theme-text-primary',
+  warehouse: 'bg-theme-bg-surface border-theme-border-subtle hover:border-theme-amber/40 text-theme-text-primary',
+  distribution: 'bg-theme-bg-surface border-theme-border-subtle hover:border-theme-green/40 text-theme-text-primary',
+  retailer: 'bg-theme-bg-surface border-theme-border-subtle hover:border-theme-red/40 text-theme-text-primary',
+  manufacturer: 'bg-theme-bg-surface border-theme-border-subtle hover:border-orange-500/40 text-theme-text-primary'
 };
 
 // Helper to generate risk class
 const getRiskClass = (riskScore: number) => {
-  if (riskScore >= 0.7) return 'ring-2 ring-red-500 ring-opacity-70';
-  if (riskScore >= 0.4) return 'ring-2 ring-yellow-500 ring-opacity-70';
+  if (riskScore >= 0.7) return 'ring-2 ring-theme-red ring-opacity-70 border-theme-red/50';
+  if (riskScore >= 0.4) return 'ring-2 ring-theme-amber ring-opacity-70 border-theme-amber/50';
   return '';
 };
 
 // Helper to generate selection class with glowing effect
 const getSelectionClass = (selected: boolean) => {
   return selected 
-    ? 'ring-4 ring-blue-400 ring-opacity-80 shadow-lg shadow-blue-200 transform scale-105 transition-all duration-200' 
+    ? 'ring-2 ring-theme-blue ring-opacity-80 shadow-md shadow-theme-blue/20 transform scale-[1.02] transition-all duration-200' 
     : 'transition-all duration-200';
 };
 
@@ -66,18 +69,11 @@ const getNodeStyle = (data: any, nodeType: keyof typeof nodeTypeColors) => {
 
 // Helper to determine if text should be dark or light based on background color
 const getContrastColor = (hexColor: string): string => {
-  // Remove # if present
   const hex = hexColor.replace('#', '');
-  
-  // Convert to RGB
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
-  
-  // Calculate brightness
   const brightness = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-  
-  // Return black for light backgrounds, white for dark backgrounds
   return brightness > 155 ? '#000000' : '#FFFFFF';
 };
 
@@ -105,7 +101,8 @@ export const SupplierNode = memo(({ id, data, isConnectable, selected }: NodePro
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm text-center">{data.label}</div>
+      <div className="text-[0.6rem] font-[700] tracking-[0.05em] text-theme-blue uppercase block mb-1 text-center">SUPPLIER</div>
+      <div className="font-[600] text-theme-text-primary text-[0.82rem] leading-[1.3] text-center">{data.label}</div>
     </div>
   );
 });
@@ -134,7 +131,8 @@ export const FactoryNode = memo(({ id, data, isConnectable, selected }: NodeProp
         isConnectable={isConnectable}
       />
 
-      <div className="font-bold text-sm text-center">{data.label}</div>
+      <div className="text-[0.6rem] font-[700] tracking-[0.05em] text-purple-500 dark:text-purple-400 uppercase block mb-1 text-center">FACTORY</div>
+      <div className="font-[600] text-theme-text-primary text-[0.82rem] leading-[1.3] text-center">{data.label}</div>
     </div>
   );
 });
@@ -163,7 +161,8 @@ export const PortNode = memo(({ id, data, isConnectable, selected }: NodeProps) 
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm text-center">{data.label}</div>
+      <div className="text-[0.6rem] font-[700] tracking-[0.05em] text-cyan-500 dark:text-cyan-400 uppercase block mb-1 text-center">PORT</div>
+      <div className="font-[600] text-theme-text-primary text-[0.82rem] leading-[1.3] text-center">{data.label}</div>
     </div>
   );
 });
@@ -192,7 +191,8 @@ export const WarehouseNode = memo(({ id, data, isConnectable, selected }: NodePr
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm text-center">{data.label}</div>
+      <div className="text-[0.6rem] font-[700] tracking-[0.05em] text-theme-amber uppercase block mb-1 text-center">WAREHOUSE</div>
+      <div className="font-[600] text-theme-text-primary text-[0.82rem] leading-[1.3] text-center">{data.label}</div>
     </div>
   );
 });
@@ -221,7 +221,8 @@ export const DistributionNode = memo(({ id, data, isConnectable, selected }: Nod
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm text-center">{data.label}</div>
+      <div className="text-[0.6rem] font-[700] tracking-[0.05em] text-theme-green uppercase block mb-1 text-center">DISTRIBUTION</div>
+      <div className="font-[600] text-theme-text-primary text-[0.82rem] leading-[1.3] text-center">{data.label}</div>
     </div>
   );
 });
@@ -245,7 +246,8 @@ export const RetailerNode = memo(({ id, data, isConnectable, selected }: NodePro
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm text-center">{data.label}</div>
+      <div className="text-[0.6rem] font-[700] tracking-[0.05em] text-theme-red uppercase block mb-1 text-center">RETAILER</div>
+      <div className="font-[600] text-theme-text-primary text-[0.82rem] leading-[1.3] text-center">{data.label}</div>
     </div>
   );
 });
@@ -274,7 +276,8 @@ export const ManufacturerNode = memo(({ id, data, isConnectable, selected }: Nod
         isConnectable={isConnectable}
       />
       
-      <div className="font-bold text-sm text-center">{data.label}</div>
+      <div className="text-[0.6rem] font-[700] tracking-[0.05em] text-orange-500 dark:text-orange-400 uppercase block mb-1 text-center">MANUFACTURER</div>
+      <div className="font-[600] text-theme-text-primary text-[0.82rem] leading-[1.3] text-center">{data.label}</div>
       {data.label?.toLowerCase().includes('india') && (
         <div className="text-xs text-center mt-1">🇮🇳</div>
       )}
@@ -284,7 +287,6 @@ export const ManufacturerNode = memo(({ id, data, isConnectable, selected }: Nod
 
 // Template Group Node
 export const TemplateGroupNode = memo(({ data, selected }: NodeProps) => {
-  // Use a simpler selection class for template groups without the blue ring
   const templateSelectionClass = selected ? 'transition-all duration-200' : 'transition-all duration-200';
   
   return (
@@ -293,9 +295,8 @@ export const TemplateGroupNode = memo(({ data, selected }: NodeProps) => {
       data-label={data.label}
       title="Double-click to ungroup this template"
     >
-      {/* Template content area - children nodes will be positioned here */}
       <div className="h-full w-full">
-        {/* This div provides space for child nodes */}
+        {/* Space for child nodes */}
       </div>
     </div>
   );
@@ -308,11 +309,11 @@ export const nodeTypes = {
   warehouseNode: WarehouseNode,
   distributionNode: DistributionNode,
   retailerNode: RetailerNode,
-  customerNode: RetailerNode,  // AI sometimes generates "customerNode" — alias to retailer
+  customerNode: RetailerNode,  // alias to retailer
   manufacturerNode: ManufacturerNode,
   productionNode: ManufacturerNode, // Alias for production nodes
   'supply-chain-node': WarehouseNode, // Alias for generic supply chain nodes
   supplyChainNode: WarehouseNode,
   genericNode: WarehouseNode,
   group: TemplateGroupNode,
-}; 
+};
