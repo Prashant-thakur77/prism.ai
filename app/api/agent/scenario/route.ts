@@ -9,6 +9,7 @@ import { LlmAgent, Gemini, InMemoryRunner, stringifyContent } from "@google/adk"
 import { withTrace } from '../../../../lib/adk/core/trace';
 import { supabaseServer } from '@/lib/supabase/server';
 import { getAIKeyForModule, AI_MODELS } from '@/lib/ai-config';
+import { agentAudit } from '@/lib/audit-logger';
 
 /**
  * Production Scenario Agent
@@ -108,11 +109,16 @@ export async function POST(request: NextRequest) {
 
     if (!supplyChainId) return NextResponse.json({ error: "Missing supplyChainId" }, { status: 400 });
 
+    const audit = agentAudit('ScenarioAgent', 'system');
+    audit.start(`Generating ${scenarioCount} scenarios for supply chain ${supplyChainId}`);
+
     const agent = new ProductionScenarioAgent();
     const result = await agent.generateScenarios(supplyChainId, scenarioCount);
     
+    audit.success(`Generated scenarios for supply chain ${supplyChainId}`);
     return NextResponse.json(result);
   } catch (error) {
+    agentAudit('ScenarioAgent', 'system').error(error instanceof Error ? error.message : "Internal Error");
     return NextResponse.json({ 
       success: false, 
       error: error instanceof Error ? error.message : "Internal Error" 

@@ -4,6 +4,7 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
 import { AI_MODELS, getAIKeyForModule } from '@/lib/ai-config';
+import { agentAudit } from '@/lib/audit-logger';
 
 // ─────────────────────────────────────────────────────────
 // 🧠 Zod Schema for Scenario Output (Strictly Matched)
@@ -125,6 +126,9 @@ export async function POST(request: Request) {
 
     const prompt = generatePrompt(supplyChains, intelData);
 
+    const audit = agentAudit('ScenarioAgent', userId);
+    audit.start(`Generating 5 disruption scenarios based on live intel`);
+
     const google = createGoogleGenerativeAI({ apiKey: getAIKeyForModule('agents') });
     const { object: scenarios } = await generateObject({
       model: google(AI_MODELS.agents, {
@@ -134,6 +138,8 @@ export async function POST(request: Request) {
       schema: ScenariosOutputSchema,
       prompt,
     });
+
+    audit.success(`Successfully generated 5 disruption scenarios`);
 
     return NextResponse.json({
       scenarios,

@@ -36,6 +36,8 @@ export function NotificationFeed() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [analyzingNews, setAnalyzingNews] = useState(false)
   const [newsAnalysisResults, setNewsAnalysisResults] = useState<any[]>([])
+  const [auditLogs, setAuditLogs] = useState<any[]>([])
+  const [loadingLogs, setLoadingLogs] = useState(false)
   const { toast } = useToast()
 
   // Client-side set of IDs the user has marked read — survives re-fetches from the polling interval
@@ -159,6 +161,30 @@ export function NotificationFeed() {
         clearInterval(scanInterval)
     }
   }, [user, supplyChains, toast])
+
+  // Fetch Audit Logs
+  useEffect(() => {
+    if (!user?.id || activeMainTab !== "activity") return;
+    
+    async function fetchAuditLogs() {
+      try {
+        setLoadingLogs(true)
+        const res = await fetch(`/api/audit-logs?userId=${user.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          setAuditLogs(data.logs || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch audit logs:', error)
+      } finally {
+        setLoadingLogs(false)
+      }
+    }
+    
+    fetchAuditLogs()
+    const interval = setInterval(fetchAuditLogs, 30000) // refresh every 30s
+    return () => clearInterval(interval)
+  }, [user?.id, activeMainTab])
 
   const handleMarkAsRead = async (id: string) => {
     // Optimistically mark read in UI immediately
@@ -348,12 +374,16 @@ export function NotificationFeed() {
   }
 
   const renderNotificationList = () => {
+    const filteredNotifications = notifications.filter(n => 
+      activeMainTab === "alerts" ? n.notification_type !== 'live_news_alert' : n.notification_type === 'live_news_alert'
+    )
+
     const displayNotifications = showMore 
-      ? notifications 
-      : notifications.slice(0, INITIAL_DISPLAY_COUNT)
+      ? filteredNotifications 
+      : filteredNotifications.slice(0, INITIAL_DISPLAY_COUNT)
     
-    const hasMoreNotifications = notifications.length > INITIAL_DISPLAY_COUNT
-    const unreadCount = notifications.filter(n => !n.read_status).length
+    const hasMoreNotifications = filteredNotifications.length > INITIAL_DISPLAY_COUNT
+    const unreadCount = filteredNotifications.filter(n => !n.read_status).length
 
     if (loading) {
       return (
@@ -377,7 +407,9 @@ export function NotificationFeed() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-foreground">Notifications</h3>
+            <h3 className="font-semibold text-foreground">
+              {activeMainTab === "alerts" ? "Threat Alerts" : "Live News"}
+            </h3>
             {unreadCount > 0 && (
               <Badge variant="secondary" className="bg-primary text-primary-foreground border-none text-xs rounded-full">
                 {unreadCount} new
@@ -596,13 +628,84 @@ export function NotificationFeed() {
     )
   }
 
+  const renderAuditLogs = () => {
+    if (loadingLogs && auditLogs.length === 0) {
+      return (
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-start gap-3 rounded-lg border p-4 bg-white dark:bg-gray-900 shadow-sm animate-pulse">
+              <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    if (auditLogs.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
+          <Info className="h-12 w-12 mb-3 opacity-20" />
+          <p className="text-sm">No recent activity found.</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="relative border-l border-theme-border-subtle ml-4 space-y-6 pb-4">
+        {auditLogs.map((log) => {
+          const isError = log.details?.status === 'error';
+          const isSuccess = log.details?.status === 'success';
+          const isStart = log.details?.status === 'started';
+          
+          return (
+            <div key={log.log_id} className="relative pl-6">
+              {/* Timeline Dot */}
+              <div className={cn(
+                "absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-gray-900",
+                isError ? "bg-theme-red" : isStart ? "bg-theme-blue animate-pulse" : "bg-theme-green"
+              )} />
+              
+              <div className="bg-theme-bg-surface border border-theme-border-subtle rounded-theme-md p-3 hover:shadow-sm transition-shadow">
+                <div className="flex justify-between items-start mb-1">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-theme-text-muted">
+                    {log.action.replace(/_/g, ' ')}
+                  </span>
+                  <span className="text-[0.65rem] text-theme-text-muted">
+                    {safeDateFormat(log.timestamp)}
+                  </span>
+                </div>
+                <p className={cn(
+                  "text-sm", 
+                  isError ? "text-theme-red font-medium" : "text-theme-text-primary"
+                )}>
+                  {log.details?.summary || 'Activity recorded'}
+                </p>
+                {log.details?.agent && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-theme-bg-secondary text-[0.65rem] text-theme-text-secondary border border-theme-border-subtle">
+                    <Factory className="h-3 w-3" />
+                    {log.details.agent}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <div className="p-4">
       {/* Main Tab Navigation */}
       <div className="flex items-center justify-between mb-6">
         <div className="bg-theme-bg-secondary border border-theme-border-subtle rounded-theme-pill p-[3px] flex space-x-1 w-fit">
           {[
-            { id: "alerts" as MainTab, label: "Real-Time Alerts" },
+            { id: "alerts" as MainTab, label: "Threat Alerts" },
+            { id: "news" as MainTab, label: "Live News" },
             { id: "activity" as MainTab, label: "Recent Activity" },
           ].map(tab => (
             <motion.button
@@ -631,9 +734,9 @@ export function NotificationFeed() {
 
       {/* Tab Content */}
       <AnimatePresence mode="wait">
-        {activeMainTab === "alerts" && (
+        {(activeMainTab === "alerts" || activeMainTab === "news") && (
           <motion.div
-            key="alerts"
+            key={activeMainTab}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -655,21 +758,23 @@ export function NotificationFeed() {
               duration: 0.3,
               ease: "easeInOut"
             }}
+            className="h-full pr-2"
           >
-            <div className="flex flex-col items-center justify-center py-12 space-y-6">
-              <Lottie 
-                animationData={comingSoonAnimation} 
-                loop={true}
-                autoplay={true}
-                style={{ width: 300, height: 300 }}
-              />
-              <div className="text-center space-y-2">
-                <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md">
-                  We're working hard to bring you detailed activity tracking. 
-                  Stay tuned for updates on your supply chain activities.
-                </p>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-semibold text-foreground">Audit & System Activity</h3>
+              <div className="flex items-center gap-4 text-[0.7rem] text-theme-text-muted font-medium bg-theme-bg-surface px-3 py-1.5 rounded-full border border-theme-border-subtle">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-theme-blue animate-pulse"></span> Started
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-theme-green"></span> Completed
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-theme-red"></span> Error
+                </span>
               </div>
             </div>
+            {renderAuditLogs()}
           </motion.div>
         )}
       </AnimatePresence>

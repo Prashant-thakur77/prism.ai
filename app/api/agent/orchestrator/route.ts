@@ -2,6 +2,7 @@ import '@/lib/zod-patch';
 import { NextRequest, NextResponse } from 'next/server';
 import { LlmAgent, FunctionTool, Gemini, InMemoryRunner, stringifyContent } from '@google/adk';
 import { z } from 'zod';
+import { agentAudit } from '@/lib/audit-logger';
 import { getAIKeyForModule, AI_MODELS } from '../../../../lib/ai-config';
 import { withTrace } from '../../../../lib/adk/core/trace';
 import { SessionManager } from '../../../../lib/adk/core/session';
@@ -241,6 +242,8 @@ RULES:
     };
 
     console.log(`[ADK-ORCHESTRATOR] ✅ Workflow complete in ${totalTime}ms | Agents: ${agentsInvolved.join(', ')} | Session: ${sessionId}`);
+
+    agentAudit('Orchestrator', userId || 'system').success(`Orchestration complete: "${query.substring(0, 80)}" — ${agentsInvolved.length} agents involved in ${totalTime}ms`, { agentsInvolved, totalSteps: coordinationLogs.length, processingTime: totalTime });
 
     return NextResponse.json(response);
   } catch (error: any) {

@@ -2,11 +2,15 @@ import '@/lib/zod-patch';
 import { tavily } from '@tavily/core';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
+import { logAudit } from '@/lib/audit-logger';
 
 const tavilyClient = tavily({
   apiKey: process.env.TAVILY_API_KEY
 });
 
+// In-memory guard prevents continuous polling if Tavily finds no new articles 
+// (which prevents the database timestamp from updating)
+let lastFetchTime = 0;
 const FETCH_COOLDOWN = 5 * 60 * 1000; // 5 minutes
 
 export async function GET(req: NextRequest) {
@@ -30,7 +34,13 @@ export async function GET(req: NextRequest) {
       .limit(1);
 
     let shouldFetch = true;
-    if (recentNews && recentNews.length > 0) {
+    
+    // Check in-memory timer first
+    if (now - lastFetchTime < FETCH_COOLDOWN) {
+      shouldFetch = false;
+    }
+    // Then check database timestamp
+    else if (recentNews && recentNews.length > 0) {
       const lastTime = new Date(recentNews[0].created_at).getTime();
       if (now - lastTime < FETCH_COOLDOWN) {
         shouldFetch = false;
@@ -39,6 +49,10 @@ export async function GET(req: NextRequest) {
 
     // Only call Tavily if cooldown has expired
     if (shouldFetch) {
+      // Update the memory timer immediately so concurrent requests or empty results 
+      // don't cause an immediate refetch
+      lastFetchTime = now;
+      
       console.log('🔍 Fetching fresh generic news directly from Tavily (No AI)...');
 
       // 1. Fetch raw news directly from Tavily
@@ -84,6 +98,7 @@ export async function GET(req: NextRequest) {
         await supabaseServer.from('notifications').insert(inserts);
         
         console.log(`✅ Saved ${inserts.length} new generic news articles to DB.`);
+        logAudit({ userId, action: 'news_fetch', details: { status: 'success', summary: `Fetched ${inserts.length} new supply chain news articles via Tavily`, metadata: { articleCount: inserts.length, titles: inserts.map((i: any) => i.title).slice(0, 5) } } });
         return NextResponse.json({ notifications: inserts });
       }
       

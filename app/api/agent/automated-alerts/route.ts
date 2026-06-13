@@ -2,10 +2,11 @@ import '@/lib/zod-patch';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
 import { tavily } from '@tavily/core';
-import { LlmAgent, FunctionTool, Gemini, InMemoryRunner, stringifyContent } from '@google/adk';
+import { LlmAgent, Gemini, InMemoryRunner, stringifyContent } from '@google/adk';
 import { z } from 'zod';
 import { getAIKeyForModule, AI_MODELS } from '@/lib/ai-config';
 import { withTrace } from '../../../../lib/adk/core/trace';
+import { agentAudit } from '@/lib/audit-logger';
 
 // Define the expected structure from Gemini when evaluating news against a supply chain
 const alertSchema = z.object({
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
         instruction: `You are a supply chain alert decision engine.
 Cross-reference the provided news with the specific supply chain nodes.
 IF, and ONLY IF, a news article poses a direct or highly credible indirect threat to one or more of these specific nodes, generate an alert.
-If the news is general and doesn't clearly map to these specific nodes, do NOT generate an alert for it.
+If the news is general and doesn't clearly map to these specific nodes, do NOT generate an alert. INSTEAD, you MUST return an empty array: { "alerts": [] }.
 Only return HIGH or CRITICAL severity alerts. If it's a minor delay, ignore it.
 
 When generating the 'message' field for the alert:
@@ -105,8 +106,7 @@ Return a COMPLETE JSON object matching the requested schema exactly.`,
         model: new Gemini({
           model: AI_MODELS.agents,
           apiKey: getAIKeyForModule('agents')
-        }),
-        outputSchema: alertSchema
+        })
       });
 
       const runner = new InMemoryRunner({ appName: 'alerts', agent });
@@ -117,7 +117,7 @@ ${JSON.stringify(topNodes.map(n => ({ id: n.node_id, name: n.name, address: n.ad
 
 Latest News:
 ${JSON.stringify(searchResult.results.map(r => ({ title: r.title, content: r.content, url: r.url, date: r.publishedDate })))}
-      `;
+      Return a COMPLETE JSON object matching the requested schema exactly. `;
 
       for await (const event of runner.runEphemeral({
         userId: userId || 'system',
@@ -127,9 +127,37 @@ ${JSON.stringify(searchResult.results.map(r => ({ title: r.title, content: r.con
         if (text) finalContent += text;
       }
 
-      // Clean markdown JSON wrapper if present
-      const cleanContent = finalContent.replace(/^```json\n/, '').replace(/\n```$/, '');
-      return { success: true, data: JSON.parse(cleanContent) };
+      console.log("[ALERT-AGENT] Raw AI Output:", finalContent);
+
+      // Extract JSON robustly using regex
+      const jsonMatch = finalContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const cleanContent = jsonMatch[0];
+        try {
+          return { success: true, data: JSON.parse(cleanContent) };
+        } catch (e) {
+          console.error("JSON parse failed on jsonMatch:", cleanContent);
+        }
+      }
+      
+      // Fallback: Gemini sometimes returns just the raw array
+      const arrayMatch = finalContent.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        const cleanContent = arrayMatch[0];
+        try {
+          return { success: true, data: { alerts: JSON.parse(cleanContent) } };
+        } catch (e) {
+          console.error("JSON parse failed on arrayMatch:", cleanContent);
+        }
+      }
+
+      // If we got here, it's either an empty response or conversational rejection
+      if (!finalContent || finalContent.trim() === '' || (!finalContent.includes('{') && !finalContent.includes('['))) {
+        console.warn("[ALERT-AGENT] Empty or non-JSON response from AI, defaulting to 0 alerts.");
+        return { success: true, data: { alerts: [] } };
+      }
+
+      throw new Error(`Failed to parse AI response as JSON object. Raw content: ${finalContent.substring(0, 100)}...`);
     });
 
     if (!traceResult.success) throw new Error(traceResult.error);
@@ -154,6 +182,7 @@ ${JSON.stringify(searchResult.results.map(r => ({ title: r.title, content: r.con
         const affectedNode = nodes.find(n => n.node_id === alert.node_id);
         const nodeName = affectedNode?.name || 'Unknown Node';
 
+        // sending alert to supabase 
         return supabaseServer.from('notifications').insert({
            user_id: userId,
            title: `⚠️ ${alert.severity} THREAT: ${nodeName}`,
@@ -177,9 +206,11 @@ ${JSON.stringify(searchResult.results.map(r => ({ title: r.title, content: r.con
       });
 
       await Promise.all(insertPromises);
+      await agentAudit('AlertDispatcherAgent', userId).success(`Threat scan complete: ${newAlerts.length} new threats detected`, { alertCount: newAlerts.length, nodeIds: newAlerts.map(a => a.node_id) });
       return NextResponse.json({ success: true, alertsGenerated: newAlerts.length, data: newAlerts });
     }
 
+    await agentAudit('AlertDispatcherAgent', userId).success('Threat scan complete: No new threats detected');
     return NextResponse.json({ success: true, alertsGenerated: 0, message: "News evaluated; no new/direct threats found or all redundant." });
 
   } catch (error: any) {
@@ -188,10 +219,12 @@ ${JSON.stringify(searchResult.results.map(r => ({ title: r.title, content: r.con
     
     if (isRateLimit) {
       console.warn('[ALERT-AGENT] AI quota exceeded — skipping this scan cycle.');
+      await agentAudit('AlertDispatcherAgent', userId || 'system').error('Scan skipped due to AI quota limit');
       return NextResponse.json({ success: true, alertsGenerated: 0, message: "Quota limit reached — scan skipped. Will retry next cycle." });
     }
 
     console.error('Automated Alert Error:', error);
+    await agentAudit('AlertDispatcherAgent', userId || 'system').error(errMsg);
     return NextResponse.json({ 
       success: false, 
       error: errMsg

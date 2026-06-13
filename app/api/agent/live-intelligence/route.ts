@@ -4,6 +4,7 @@ import { withTrace } from '../../../../lib/adk/core/trace';
 import { getAIKeyForModule, AI_MODELS } from '@/lib/ai-config';
 import { tavily } from '@tavily/core';
 import { z } from 'zod';
+import { agentAudit } from '@/lib/audit-logger';
 
 const tavilyClient = tavily({
   apiKey: process.env.TAVILY_API_KEY
@@ -110,6 +111,8 @@ export async function POST(req: NextRequest) {
     const jsonMatch = (traceResult.data as string).match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('Failed to parse live-intelligence JSON from ADK');
     const object = JSON.parse(jsonMatch[0]);
+
+    agentAudit('LiveIntelligenceAgent', 'system').success(`Live intelligence scan complete: ${object.disruptionsFound ? 'Disruptions found' : 'No disruptions'}`, { nodeCount: nodes.length, regionsScanned: Object.keys(regionalGroups).length });
 
     return NextResponse.json(object);
   } catch (error: any) {

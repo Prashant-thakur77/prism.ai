@@ -11,6 +11,7 @@ import { createHash } from 'crypto'
 import { getAIKeyForModule, AI_MODELS } from '@/lib/ai-config'
 import { z } from 'zod'
 import { supabaseServer } from '@/lib/supabase/server'
+import { agentAudit } from '@/lib/audit-logger';
 import { Redis } from '@upstash/redis'
 import type { Simulation, ImpactResult, Node, Edge, SupplyChain } from '@/lib/types/database'
 import { createMem0, addMemories, retrieveMemories, getMemories } from '@mem0/vercel-ai-provider'
@@ -1365,6 +1366,9 @@ export async function POST(request: NextRequest) {
 
     console.log(`🎯 POST Impact assessment for simulation: ${simulationId} (force: ${forceRefresh})`)
     
+    const audit = agentAudit('ImpactAgent', 'system');
+    audit.start(`Impact assessment for simulation ${simulationId}`);
+
     const agent = new ProductionImpactAssessmentAgent()
     
     // Clear cache if force refresh is requested
@@ -1379,6 +1383,8 @@ export async function POST(request: NextRequest) {
     
     const result = await agent.conductComprehensiveImpactAssessment(simulationId)
     
+    audit.success(`Impact assessment completed for simulation ${simulationId}`);
+
     return NextResponse.json({
       success: true,
       data: result,

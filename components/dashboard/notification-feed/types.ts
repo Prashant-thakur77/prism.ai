@@ -1,7 +1,7 @@
 import type { Tables } from "@/lib/types/database"
 
 export type NotificationType = "alert" | "warning" | "info" | "success"
-export type MainTab = "alerts" | "activity"
+export type MainTab = "alerts" | "news" | "activity"
 export type Notification = Tables<"notifications">
 
 export interface SourceMetadata {

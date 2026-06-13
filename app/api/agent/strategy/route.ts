@@ -8,6 +8,7 @@ import { generateObject } from 'ai';
 import { getAIKeyForModule, AI_MODELS } from '@/lib/ai-config';
 import { Redis } from '@upstash/redis';
 import { tavily } from '@tavily/core';
+import { agentAudit } from '@/lib/audit-logger';
 
 
 /**
@@ -498,11 +499,16 @@ export async function POST(request: NextRequest) {
     
     if (!simulationId) return NextResponse.json({ error: "Missing simulationId" }, { status: 400 });
 
+    const audit = agentAudit('StrategyAgent', 'system');
+    audit.start(`Strategy generation for simulation ${simulationId}`);
+
     const agent = new ProductionStrategyAgent();
     const result = await agent.conductComprehensiveStrategyAnalysis(simulationId);
     
+    audit.success(`Strategy generated for simulation ${simulationId}`);
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
+    agentAudit('StrategyAgent', 'system').error(error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json({ 
       success: false, 
       error: error instanceof Error ? error.message : "Internal Error" 

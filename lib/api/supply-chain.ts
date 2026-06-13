@@ -5,6 +5,7 @@ import type {
   Edge as DbEdge,
 } from "@/lib/types/database"
 import type { SupplyChainArch } from "@/types/supply-chain"
+import { logAuditAction } from "@/lib/actions/audit-actions"
 
 // Supply Chain CRUD operations
 export async function getSupplyChains(userId :any): Promise<SupplyChain[]> {
@@ -232,6 +233,8 @@ export async function saveSupplyChainToDatabase(supplyChainData: {
       throw new Error('No data returned from edge function');
     }
 
+    logAuditAction({ userId: 'system', action: 'supply_chain_saved', details: { status: 'success', summary: `Supply chain "${supplyChainData.name}" saved with ${supplyChainData.nodes.length} nodes and ${supplyChainData.edges.length} edges`, metadata: { name: supplyChainData.name, nodeCount: supplyChainData.nodes.length, edgeCount: supplyChainData.edges.length } } });
+
     return data;
   } catch (error) {
     console.error('Error saving supply chain:', error);
@@ -254,6 +257,8 @@ export async function deleteSupplyChainViaEdgeFunction(supplyChainId: string, or
     if (!data) {
       throw new Error('No data returned from edge function');
     }
+
+    logAuditAction({ userId: 'system', action: 'supply_chain_deleted', details: { status: 'success', summary: `Supply chain ${supplyChainId} deleted`, metadata: { supplyChainId, organisationId } } });
 
     return data;
   } catch (error) {

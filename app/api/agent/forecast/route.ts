@@ -5,7 +5,8 @@ import { generateObject } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { Redis } from '@upstash/redis';
 
-import { supabaseServer } from '../../../../lib/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
+import { agentAudit } from '@/lib/audit-logger';
 import { getAIKeyForModule, AI_MODELS } from '../../../../lib/ai-config';
 import { logger } from '../../../../lib/monitoring';
 
@@ -201,6 +202,9 @@ export async function POST(request: NextRequest) {
     const params = validationResult.data;
     logger.info({ message: 'Starting AI forecast generation', supplyChainId: params.supplyChainId, traceId });
 
+    const audit = agentAudit('ForecastAgent', 'system');
+    audit.start(`Forecast generation for supply chain ${params.supplyChainId}`);
+
     // ── 1. Verify supply chain exists ─────────────────────────────────────────
     const { data: supplyChain, error: supplyChainError } = await supabaseServer
       .from('supply_chains')
@@ -297,6 +301,8 @@ export async function POST(request: NextRequest) {
     const processingTime = Date.now() - startTime;
     logger.info({ message: 'Forecast generation completed', processingTimeMs: processingTime, supplyChainId: params.supplyChainId, traceId });
 
+    audit.success(`Forecast generated for supply chain ${params.supplyChainId}`, { forecastHorizon: params.forecastHorizon, riskScore: forecastOutput.overallRiskScore, processingTime });
+
     return NextResponse.json({
       success: true,
       forecast: {
@@ -319,6 +325,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     const processingTime = Date.now() - startTime;
     logger.error({ message: 'Error generating forecast', error: error.message, processingTimeMs: processingTime, traceId });
+    agentAudit('ForecastAgent', 'system').error(error.message);
     return NextResponse.json(
       { error: 'Error generating forecast', message: error.message, traceId },
       { status: 500 }
