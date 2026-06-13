@@ -1,3 +1,4 @@
+import '@/lib/zod-patch';
 import { NextRequest, NextResponse } from 'next/server';
 import { LlmAgent, Gemini, InMemoryRunner, stringifyContent } from '@google/adk';
 import { withTrace } from '../../../../lib/adk/core/trace';
@@ -64,6 +65,8 @@ export async function POST(req: NextRequest) {
         instruction: 'You are a logistics route optimization specialist. Analyze the disrupted node and supply chain graph, then return alternate routing recommendations as valid JSON matching the schema exactly.',
         model: new Gemini({ model: AI_MODELS.agents, apiKey: getAIKeyForModule('agents') }),
         outputSchema: RouteOptimizationSchema,
+        disallowTransferToParent: true,
+        disallowTransferToPeers: true,
       });
 
       const runner = new InMemoryRunner({ appName: 'route-optimization', agent });

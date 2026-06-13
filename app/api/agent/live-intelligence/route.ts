@@ -1,3 +1,4 @@
+import '@/lib/zod-patch';
 import { NextRequest, NextResponse } from 'next/server';
 import { LlmAgent, Gemini, InMemoryRunner, stringifyContent } from '@google/adk';
 import { withTrace } from '../../../../lib/adk/core/trace';
@@ -92,6 +93,8 @@ export async function POST(req: NextRequest) {
             5. Summarize the overall situation in \`description\`. Always return valid JSON matching the schema.`,
         model: new Gemini({ model: AI_MODELS.agents, apiKey: getAIKeyForModule('agents') }),
         outputSchema: LiveIntelligenceSchema,
+        disallowTransferToParent: true,
+        disallowTransferToPeers: true,
       });
 
       const runner = new InMemoryRunner({ appName: 'live-intelligence', agent });
