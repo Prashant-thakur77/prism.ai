@@ -180,7 +180,6 @@ export const useCopilotActions = (props: UseCopilotActionsProps) => {
     nodesData,
     edgesData,
     validationSummary,
-    supplyChainAnalysis
   };
 };
 

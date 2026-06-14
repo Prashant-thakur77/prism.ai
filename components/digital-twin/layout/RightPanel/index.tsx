@@ -77,11 +77,12 @@ const RightPanel: FC<RightPanelProps> = ({
   onUpdate, 
   onDelete, 
   onUngroup, 
+  onAnalyzeNode,
   nodes = [], 
   onSave 
 }) => {
   const [formValues, setFormValues] = useState<any>({});
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const [dontAskAgain, setDontAskAgain] = useState(false);
   const [shouldSkipConfirmation, setShouldSkipConfirmation] = useState(false);
@@ -103,6 +104,7 @@ const RightPanel: FC<RightPanelProps> = ({
     if (selectedElement) {
       setFormValues(selectedElement.data || {});
       setSaveStatus('saved'); 
+      setIsCollapsed(false); // Automatically expand the panel when an element is selected
     } else {
       setFormValues({});
       setSaveStatus('saved');
@@ -493,9 +495,12 @@ const RightPanel: FC<RightPanelProps> = ({
           <div className="space-y-2">
             <button
               onClick={() => {
-                toast("Analyzing node...", { 
-                  description: `Evaluating critical path dependencies and local risk profiles for "${formValues.label || selectedElement.id}".` 
-                });
+                if (onAnalyzeNode) {
+                  onAnalyzeNode(selectedElement.id, formValues.label || selectedElement.id);
+                  toast.success("AI Analysis Started", {
+                    description: "Opening Copilot Assistant to analyze this node..."
+                  });
+                }
               }}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#EFEBE3] dark:bg-[#191817] hover:bg-[#D6CFC4] dark:hover:bg-[#2A2825] text-theme-text-primary text-xs font-semibold rounded-lg border border-theme-border-subtle transition-all"
             >

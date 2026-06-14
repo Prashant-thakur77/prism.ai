@@ -8,10 +8,11 @@ export interface RightPanelProps {
   onUpdate: (updatedElement: Node | Edge) => void;
   onDelete?: (elementId: string) => void;
   onUngroup?: (groupId: string) => void;
+  onAnalyzeNode?: (nodeId: string, nodeLabel: string) => void;
   nodes?: Node[];
   onSave?: () => Promise<void>; // Add optional onSave prop for triggering parent save
 }
 
 export interface SaveStatusIndicatorProps {
   saveStatus: SaveStatus;
-} 
+}

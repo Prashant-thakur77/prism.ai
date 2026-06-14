@@ -115,7 +115,8 @@ const BaseNode = memo(({
   return (
     <div
       style={borderStyle}
-      className={`relative w-[190px] rounded-xl px-3 py-2.5 transition-all duration-200 shadow-sm text-left ${
+      title="Click to view node details"
+      className={`relative w-[190px] rounded-xl px-3 py-2.5 transition-all duration-200 shadow-sm text-left cursor-pointer ${
         isHighRisk 
           ? 'bg-[#FEF2F2] dark:bg-[#2A1515]' 
           : 'bg-white dark:bg-zinc-900'

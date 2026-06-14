@@ -153,8 +153,26 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
     localStorage.setItem('ai-recent-queries', JSON.stringify(updated));
   }, [recentQueries]);
 
-  // CopilotKit chat integration
-  const copilotChat = useCopilotChat();
+  // CopilotKit chat integration with strict persona enforcement
+  const copilotChat = useCopilotChat({
+    makeSystemMessage: (contextString, additionalInstructions) => `
+      You are Prism AI, an elite, highly professional supply chain operations and digital twin assistant.
+      Your sole purpose is to analyze supply chains, optimize logistics, identify risks, and simulate disruptions.
+
+      STRICT BOUNDARIES:
+      1. You must ONLY answer questions related to supply chains, logistics, manufacturing, operations, or the Digital Twin canvas you are analyzing.
+      2. If the user asks ANY question outside of this scope (including coding, math riddles, general trivia, writing essays, or playing games), you MUST refuse.
+      3. Do NOT attempt to answer the out-of-scope question. Reply exactly with: "I am a specialized supply chain operations assistant. I cannot assist with requests outside of supply chain management, logistics, and digital twin analysis."
+      4. Never identify yourself as a general-purpose AI or an LLM trained by Google. You are Prism AI.
+
+      Context:
+      ${contextString}
+
+      Additional Instructions:
+      ${additionalInstructions || ''}
+    `
+  });
+  
   const {
     visibleMessages,
     appendMessage,
@@ -250,22 +268,23 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({
         // Save the query for history
         saveQuery(pendingAIMessage);
         
+        // Cache the message locally and clear state synchronously BEFORE sending
+        // This prevents the useEffect from re-triggering if appendMessage causes a re-render
+        const messageToSend = pendingAIMessage;
+        setInput('');
+        setPendingAIMessage(null);
+        console.log('🧹 Input cleared and pending message removed');
+        
         // Send the message using CopilotKit
         try {
           await appendMessage(new TextMessage({ 
-            content: pendingAIMessage, 
+            content: messageToSend, 
             role: Role.User 
           }));
           console.log('✅ Pending AI message sent successfully');
         } catch (error) {
           console.error('❌ Failed to send pending AI message:', error);
         }
-        
-        // Clear input and pending message
-        setInput('');
-        setPendingAIMessage(null);
-        
-        console.log('🧹 Input cleared and pending message removed');
       }, 300); // Small delay to ensure UI is ready
       
       return () => clearTimeout(timer);
