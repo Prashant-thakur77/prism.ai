@@ -29,7 +29,7 @@ export function useSaveAndValidate({
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const performSave = useCallback(async (customName?: string, customDesc?: string): Promise<string | null> => {
+  const performSave = useCallback(async (customName?: string, customDesc?: string, isAutoSave?: boolean): Promise<string | null> => {
     setIsSaving(true);
     try {
       const connections = edges.map(edge => {
@@ -127,11 +127,13 @@ export function useSaveAndValidate({
         // NOTE: Do NOT call router.push here — that would unmount the canvas before
         // IntelligenceAnalysisDialog can open. The toolbar/dialog will handle navigating
         // to the new twinId after the analysis dialog completes.
-        window.dispatchEvent(
-          new CustomEvent('supply_chain_saved', {
-            detail: { supplyChainId: savedData.supply_chain_id },
-          })
-        );
+        if (!isAutoSave) {
+          window.dispatchEvent(
+            new CustomEvent('supply_chain_saved', {
+              detail: { supplyChainId: savedData.supply_chain_id },
+            })
+          );
+        }
       }
       setShowValidationDialog(false);
       if (saveNameFromUrl || saveDescriptionFromUrl) {
@@ -150,7 +152,7 @@ export function useSaveAndValidate({
     }
   }, [nodes, edges, selectedSupplyChain, supplyChainName, description, userData, router]);
 
-  const handleSave = useCallback(async (customName?: string, customDesc?: string): Promise<string | null> => {
+  const handleSave = useCallback(async (customName?: string, customDesc?: string, isAutoSave?: boolean): Promise<string | null> => {
     try {
       const issues = validateSupplyChain(nodes, edges);
       
@@ -169,7 +171,7 @@ export function useSaveAndValidate({
         console.warn('⚠️ [Save] Proceeding with warnings:', warnings.map(w => w.message));
       }
       
-      return await performSave(customName, customDesc);
+      return await performSave(customName, customDesc, isAutoSave);
     } catch (error) {
       console.error('❌ [useSaveAndValidate] Error during handleSave:', error);
       console.error('❌ [useSaveAndValidate] Error details:', {

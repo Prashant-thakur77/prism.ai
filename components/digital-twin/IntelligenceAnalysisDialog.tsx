@@ -20,22 +20,8 @@ interface IntelligenceAnalysisDialogProps {
 
 type Status = "idle" | "streaming" | "completed" | "error";
 
-function SuccessRedirect({ onGoToDashboard }: { onGoToDashboard: () => void }) {
-  const [countdown, setCountdown] = useState(3);
+function SuccessRedirect({ onGoToDashboard, onClose }: { onGoToDashboard: () => void; onClose: () => void }) {
   const router = useRouter();
-
-  useEffect(() => {
-    if (countdown === 0) {
-      router.push('/dashboard');
-      return;
-    }
-
-    const timerId = setInterval(() => {
-      setCountdown(prev => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timerId);
-  }, [countdown, router]);
 
   const handleGoToDashboard = () => {
     onGoToDashboard();
@@ -50,17 +36,20 @@ function SuccessRedirect({ onGoToDashboard }: { onGoToDashboard: () => void }) {
           Analysis Complete
         </h3>
         <p className="mt-2 text-gray-500 dark:text-gray-400 max-w-sm">
-          We have successfully analyzed your supply chain. You can wait to be
-          redirected, or go back to the dashboard now.
-        </p>
-        <p className="mt-6 text-sm text-gray-400 dark:text-gray-500">
-          Redirecting to Dashboard in {countdown}...
+          We have successfully analyzed your supply chain.
         </p>
       </div>
-      <div className="pt-4 mt-4 w-full">
+      <div className="pt-4 mt-4 w-full flex gap-3">
+        <Button
+          onClick={onClose}
+          className="flex-1 shadow-md"
+          variant="default"
+        >
+          Continue Editing
+        </Button>
         <Button
           onClick={handleGoToDashboard}
-          className="w-full shadow-md"
+          className="flex-1 shadow-md"
           variant="secondary"
         >
           Go to Dashboard
@@ -196,7 +185,7 @@ const IntelligenceAnalysisDialog: FC<IntelligenceAnalysisDialogProps> = ({
             content={assistantMessages.map((m) => m.content).join("\n")}
           />
         ) : status === "completed" ? (
-          <SuccessRedirect onGoToDashboard={handleGoToDashboard} />
+          <SuccessRedirect onGoToDashboard={handleGoToDashboard} onClose={onClose} />
         ) : status === "error" ? (
           <ErrorRedirect onGoToDashboard={handleGoToDashboard} error={error} />
         ) : (
