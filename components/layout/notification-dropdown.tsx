@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { motion, type Variants } from "framer-motion"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -171,10 +172,14 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
 
     return (
         <motion.div variants={dropdownItem}>
-            <DropdownMenuItem className={`cursor-pointer p-3 hover:bg-slate-50 dark:hover:bg-slate-800 ${!notification.read_status ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+            <DropdownMenuItem className={cn(
+                "cursor-pointer p-3 transition-colors duration-200 outline-none",
+                "focus:bg-theme-bg-secondary hover:bg-theme-bg-secondary",
+                !notification.read_status ? 'bg-theme-blue-soft/40 dark:bg-theme-blue-soft/10' : ''
+            )}>
                 <div className="flex flex-col gap-2.5 w-full text-left">
                     <div className="flex items-start justify-between gap-2">
-                        <div className="font-medium text-sm leading-tight text-slate-900 dark:text-slate-100">{notification.title}</div>
+                        <div className="font-medium text-sm leading-tight text-theme-text-primary">{notification.title}</div>
                         <div className="flex items-center gap-1">
                             {notification.severity && (
                                 <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 border ${severityColor}`}>
@@ -208,7 +213,7 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
                         </div>
                     </div>
                     {truncatedMessage && (
-                        <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-2">
+                        <div className="text-xs text-theme-text-secondary leading-relaxed mb-2">
                             {truncatedMessage}
                         </div>
                     )}
@@ -228,7 +233,7 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
                                 <SourceBubble key={index} source={source} />
                             ))}
                             {citations.sources.length > 3 && (
-                                <div className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-muted/50 text-muted-foreground rounded-md border">
+                                <div className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-theme-bg-secondary text-theme-text-muted rounded-md border border-theme-border-subtle">
                                     +{citations.sources.length - 3} more
                                 </div>
                             )}
@@ -240,7 +245,7 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
                         <div className="flex flex-wrap gap-1">
                             <RelationshipBubble relationship={citations.relationships[0]} />
                             {citations.relationships.length > 1 && (
-                                <div className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-700">
+                                <div className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-theme-bg-secondary text-theme-text-secondary rounded-md border border-theme-border-subtle">
                                     +{citations.relationships.length - 1} more
                                 </div>
                             )}
@@ -251,12 +256,12 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
                     {citations?.affectedEntities && citations.affectedEntities.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                             {citations.affectedEntities.slice(0, 3).map((entity, index) => (
-                                <div key={index} className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-700">
+                                <div key={index} className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-theme-bg-secondary text-theme-text-secondary rounded-md border border-theme-border-subtle">
                                     {entity}
                                 </div>
                             ))}
                             {citations.affectedEntities.length > 3 && (
-                                <div className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-muted/50 text-muted-foreground rounded-md border">
+                                <div className="inline-flex items-center px-1.5 py-0.5 text-[10px] bg-theme-bg-secondary text-theme-text-muted rounded-md border border-theme-border-subtle">
                                     +{citations.affectedEntities.length - 3} more
                                 </div>
                             )}
@@ -264,7 +269,7 @@ function NotificationItem({ notification, onMarkAsRead }: { notification: Notifi
                     )}
 
                     {notification.created_at && safeDateFormat(notification.created_at) && (
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-[10px] text-theme-text-muted">
                             {safeDateFormat(notification.created_at)}
                         </div>
                     )}
@@ -437,7 +442,7 @@ export function NotificationDropdown() {
                     <span className="sr-only">Notifications</span>
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[32rem] bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800" asChild>
+            <DropdownMenuContent align="end" className="w-[32rem] bg-theme-bg-primary border-theme-border-subtle shadow-xl" asChild>
                 <motion.div
                     variants={dropdownContent}
                     initial="hidden"
@@ -445,12 +450,12 @@ export function NotificationDropdown() {
                     exit="exit"
                 >
                     <div className="flex items-center justify-between px-4 py-2">
-                        <DropdownMenuLabel className="text-sm font-semibold p-0 text-slate-900 dark:text-slate-100">Notifications</DropdownMenuLabel>
+                        <DropdownMenuLabel className="text-sm font-semibold p-0 text-theme-text-primary">Notifications</DropdownMenuLabel>
                         {unreadCount > 0 && (
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-xs h-8 px-2"
+                                className="text-xs h-8 px-2 text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-secondary"
                                 onClick={handleMarkAllAsRead}
                                 disabled={isMarkingAll}
                             >
@@ -463,15 +468,15 @@ export function NotificationDropdown() {
                             </Button>
                         )}
                     </div>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="bg-theme-border-subtle" />
                     <div className="max-h-96 overflow-auto">
                         {notifications.length > 0 ? (
                             notifications.map((n, index) => <NotificationItem key={n.notification_id || index} notification={n} onMarkAsRead={handleMarkAsRead} />)
                         ) : (
                             <motion.div variants={dropdownItem}>
-                                <DropdownMenuItem disabled>
+                                <DropdownMenuItem disabled className="focus:bg-transparent">
                                     <div className="flex flex-col gap-1 w-full text-center py-6">
-                                        <div className="text-sm text-muted-foreground">
+                                        <div className="text-sm text-theme-text-muted">
                                             No new notifications
                                         </div>
                                     </div>
@@ -479,9 +484,9 @@ export function NotificationDropdown() {
                             </motion.div>
                         )}
                     </div>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="bg-theme-border-subtle" />
                     <motion.div variants={dropdownItem}>
-                        <DropdownMenuItem asChild className="cursor-pointer justify-center font-medium text-sm">
+                        <DropdownMenuItem asChild className="cursor-pointer justify-center font-medium text-sm text-theme-blue focus:bg-theme-bg-secondary hover:bg-theme-bg-secondary outline-none">
                             <Link href="/news-room">
                                 View real time alerts <ArrowRight className="ml-1 w-4 h-4" />
                             </Link>
