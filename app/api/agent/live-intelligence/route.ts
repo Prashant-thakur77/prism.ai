@@ -3,13 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LlmAgent, Gemini, InMemoryRunner, stringifyContent } from '@google/adk';
 import { withTrace } from '../../../../lib/adk/core/trace';
 import { getAIKeyForModule, AI_MODELS } from '@/lib/ai-config';
-import { tavily } from '@tavily/core';
+import { getTavilyClient } from '@/lib/clients/tavily';
 import { z } from 'zod';
 import { agentAudit } from '@/lib/audit-logger';
-
-const tavilyClient = tavily({
-  apiKey: process.env.TAVILY_API_KEY
-});
 
 const LiveIntelligenceSchema = z.object({
   disruptionsFound: z.boolean().describe('True if any node has a critical risk score > 0.80'),
@@ -51,7 +47,7 @@ export async function POST(req: NextRequest) {
         // Scale results based on number of nodes in this region, capped at 5 per region to manage context window
         const resultsCount = Math.min(Math.max(names.length, 3), 5);
 
-        const result = await tavilyClient.search(searchQuery, { topic: 'news', days: 3, maxResults: resultsCount });
+        const result = await getTavilyClient().search(searchQuery, { topic: 'news', days: 3, maxResults: resultsCount });
         return `\n--- News for Region: ${region} ---\n` + result.results.map(r => `${r.title}: ${r.content}`).join('\n');
       });
 

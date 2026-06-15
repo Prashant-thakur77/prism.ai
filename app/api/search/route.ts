@@ -1,9 +1,5 @@
-import { tavily } from '@tavily/core';
 import { NextRequest, NextResponse } from 'next/server';
-
-const tavilyClient = tavily({
-  apiKey: process.env.TAVILY_API_KEY
-});
+import { getTavilyClient } from '@/lib/clients/tavily';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    const searchResult = await tavilyClient.search(query, {
+    const searchResult = await getTavilyClient().search(query, {
       searchDepth: "advanced",
       includeAnswer: true,
       maxResults: 5,

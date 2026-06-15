@@ -1,12 +1,8 @@
 import '@/lib/zod-patch';
-import { tavily } from '@tavily/core';
+import { getTavilyClient } from '@/lib/clients/tavily';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit-logger';
-
-const tavilyClient = tavily({
-  apiKey: process.env.TAVILY_API_KEY
-});
 
 // In-memory guard prevents continuous polling if Tavily finds no new articles 
 // (which prevents the database timestamp from updating)
@@ -56,7 +52,7 @@ export async function GET(req: NextRequest) {
       console.log('🔍 Fetching fresh generic news directly from Tavily (No AI)...');
 
       // 1. Fetch raw news directly from Tavily
-      const searchResult = await tavilyClient.search('latest supply chain disruption logistics trade news', { 
+      const searchResult = await getTavilyClient().search('latest supply chain disruption logistics trade news', { 
         topic: 'news', 
         days: 2, 
         maxResults: 10 

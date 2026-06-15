@@ -12,35 +12,10 @@ import { getAIKeyForModule, AI_MODELS } from '@/lib/ai-config'
 import { z } from 'zod'
 import { supabaseServer } from '@/lib/supabase/server'
 import { agentAudit } from '@/lib/audit-logger';
-import { Redis } from '@upstash/redis'
+import { getRedisClient } from '@/lib/clients/redis';
 import type { Simulation, ImpactResult, Node, Edge, SupplyChain } from '@/lib/types/database'
 import { createMem0, addMemories, retrieveMemories, getMemories } from '@mem0/vercel-ai-provider'
 
-// Initialize Redis for advanced caching with TTL strategies
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_URL!,
-  token: process.env.UPSTASH_REDIS_TOKEN!
-})
-
-// Initialize Mem0 with proper configuration following latest docs
-const mem0 = createMem0({
-  provider: 'google',
-  mem0ApiKey: process.env.MEM0_API_KEY || '',
-  apiKey: getAIKeyForModule('agents'),
-  config: {
-    compatibility: 'strict',
-  }
-});
-
-// Mem0 configuration constants for impact assessment
-const MEM0_CONFIG = {
-  user_id: 'impact-assessment-agent', // Specific user ID for impact agent
-  org_id: process.env.MEM0_ORG_ID || '',
-  project_id: process.env.MEM0_PROJECT_ID || '',
-  app_id: 'prism-impact-agent',
-  agent_id: 'supply-chain-impact-agent',
-  run_id: `impact-run-${Date.now()}` // Generate a unique run ID
-};
 
 // Enhanced Impact Assessment Schema with Standardized Response Formats
 const ImpactMetricsSchema = z.object({
@@ -126,11 +101,11 @@ class ProductionImpactAssessmentAgent {
   public async getCachedImpactAssessment(simulationId: string): Promise<any | null> {
     try {
       const cacheKey = `impact_assessment_v2:${simulationId}`
-      const cached = await redis.get(cacheKey)
+      const cached = await getRedisClient().get(cacheKey)
       
       if (cached) {
         console.log(`📋 Retrieved cached impact assessment for simulation ${simulationId}`)
-        try { await redis.setex(`${cacheKey}:hit`, 300, new Date().toISOString()) } catch {}
+        try { await getRedisClient().setex(`${cacheKey}:hit`, 300, new Date().toISOString()) } catch {}
         return cached
       }
       
@@ -145,9 +120,9 @@ class ProductionImpactAssessmentAgent {
     try {
       const cacheKey = `impact_assessment_v2:${simulationId}`
       const ttl = 7200
-      await redis.setex(cacheKey, ttl, JSON.stringify(assessment))
+      await getRedisClient().setex(cacheKey, ttl, JSON.stringify(assessment))
       try {
-        await redis.setex(`${cacheKey}:meta`, ttl, JSON.stringify({
+        await getRedisClient().setex(`${cacheKey}:meta`, ttl, JSON.stringify({
           cachedAt: new Date().toISOString(),
           simulationId,
           version: 'v2.0',
@@ -429,7 +404,7 @@ ANALYSIS METADATA:
       const scenarioCacheKey = `scenario_cache_v2:${scenarioHash}`
       
       try {
-        const similarResults = await redis.get(scenarioCacheKey)
+        const similarResults = await getRedisClient().get(scenarioCacheKey)
         if (similarResults) {
           console.log(`🔍 Found similar scenario results for hash: ${scenarioHash}`)
           return JSON.parse(similarResults as string)
@@ -458,7 +433,7 @@ ANALYSIS METADATA:
         const scenarioHash = this.generateScenarioHash(simulation)
         const scenarioCacheKey = `scenario_cache_v2:${scenarioHash}`
         try {
-          await redis.setex(scenarioCacheKey, 14400, JSON.stringify({
+          await getRedisClient().setex(scenarioCacheKey, 14400, JSON.stringify({
             ...assessment,
             originalSimulationId: simulationId,
             scenarioHash,
@@ -1374,7 +1349,7 @@ export async function POST(request: NextRequest) {
     // Clear cache if force refresh is requested
     if (forceRefresh) {
       try {
-        await redis.del(`impact_assessment_v2:${simulationId}`)
+        await getRedisClient().del(`impact_assessment_v2:${simulationId}`)
         console.log('🗑️ Cache cleared for force refresh')
       } catch (redisErr) {
         console.warn('⚠️ Redis cache clear skipped (Redis unavailable):', (redisErr as any)?.message)
