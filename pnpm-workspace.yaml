@@ -1,26 +1,12 @@
 packages:
-  - .
-
-allowBuilds:
-  '@scarf/scarf': set this to true or false
-  '@sentry/cli': set this to true or false
-  '@vercel/speed-insights': set this to true or false
-  cpu-features: set this to true or false
-  protobufjs: set this to true or false
-  sharp: set this to true or false
-  sqlite3: set this to true or false
-  ssh2: set this to true or false
+  - '.'
 
 onlyBuiltDependencies:
   - '@scarf/scarf'
   - '@sentry/cli'
   - '@vercel/speed-insights'
-  - cpu-features
-  - protobufjs
-  - sharp
-  - sqlite3
-  - ssh2
-
-overrides:
-  import-in-the-middle: "1.15.0"
-  zod: "3.25.67"
+  - 'cpu-features'
+  - 'protobufjs'
+  - 'sharp'
+  - 'sqlite3'
+  - 'ssh2'
