@@ -60,6 +60,11 @@ export function NotificationFeed() {
     fetchUser()
   }, [])
 
+  const supplyChainsRef = useRef(supplyChains);
+  useEffect(() => {
+    supplyChainsRef.current = supplyChains;
+  }, [supplyChains]);
+
   // Fetch notifications
   useEffect(() => {
     if (!user?.id) return
@@ -120,25 +125,26 @@ export function NotificationFeed() {
         }
     }
 
-    // Autonomous Threat Scanning
+    // Autonomous Threat Scanning — round-robin across ALL supply chains
     let isScanning = false;
+    let scanIndex = 0; // tracks which supply chain to scan next
     const runThreatScans = async () => {
-        if (!user?.id || supplyChains.length === 0 || isScanning) return;
+        const chains = supplyChainsRef.current;
+        if (!user?.id || chains.length === 0 || isScanning) return;
         isScanning = true;
         
         try {
-            // Pick a supply chain to scan (simple round robin or just the first few to avoid API limits)
-            // For now, let's just trigger a scan for the first available supply chain
-            const targetChain = supplyChains[0];
+            // Round-robin: scan next supply chain in sequence
+            const targetChain = chains[scanIndex % chains.length];
+            scanIndex++;
             if (!targetChain) return;
 
-            console.log(`[DASHBOARD-FEED] Triggering autonomous threat scan for SC: ${targetChain.supply_chain_id}`);
+            console.log(`[DASHBOARD-FEED] Triggering autonomous threat scan for SC ${scanIndex}/${chains.length}: ${targetChain.supply_chain_id}`);
             const res = await fetch(`/api/agent/automated-alerts?supplyChainId=${targetChain.supply_chain_id}&userId=${user.id}`);
             const data = await res.json();
             
             if (data.success && data.alertsGenerated > 0) {
-               // A new threat was found and added to the DB.
-               // It will be picked up on the next fetchNotifications cycle or we can fetch immediately.
+               // A new threat was found — pull it into the feed immediately
                fetchNotifications();
             }
         } catch (error) {
@@ -148,19 +154,47 @@ export function NotificationFeed() {
         }
     }
 
+    // Weather Intelligence Scan — checks ALL nodes + transit route midpoints
+    // Runs once on mount then every 3 hours (weather changes slowly)
+    let isWeatherScanning = false;
+    const runWeatherScan = async () => {
+        if (!user?.id || isWeatherScanning) return;
+        isWeatherScanning = true;
+        try {
+            console.log('[DASHBOARD-FEED] Running weather intelligence scan across all transit routes...');
+            const res = await fetch('/api/agent/weather-intelligence', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            });
+            const data = await res.json();
+            if (data.success && data.adverseConditions > 0) {
+                console.log(`[DASHBOARD-FEED] ${data.adverseConditions} adverse weather conditions found — refreshing notifications`);
+                fetchNotifications();
+            }
+        } catch (error) {
+            console.error('[DASHBOARD-FEED] Weather scan failed:', error);
+        } finally {
+            isWeatherScanning = false;
+        }
+    }
+
     fetchNotifications()
     fetchLiveNews()
+    runWeatherScan() // Run once immediately on mount
     
-    const dbInterval = setInterval(fetchNotifications, 30000) // Refresh DB every 30s
-    const newsInterval = setInterval(fetchLiveNews, 120000) // Live news every 2 min
-    const scanInterval = setInterval(runThreatScans, 180000) // Deep AI threat scan every 3 min
+    const dbInterval      = setInterval(fetchNotifications, 30000)   // Refresh DB every 30s
+    const newsInterval    = setInterval(fetchLiveNews, 120000)        // Live news every 2 min
+    const scanInterval    = setInterval(runThreatScans, 180000)       // Deep AI threat scan every 3 min
+    const weatherInterval = setInterval(runWeatherScan, 3 * 60 * 60 * 1000) // Weather scan every 3 hours
 
     return () => {
         clearInterval(dbInterval)
         clearInterval(newsInterval)
         clearInterval(scanInterval)
+        clearInterval(weatherInterval)
     }
-  }, [user, supplyChains, toast])
+  }, [user?.id]) // Removed toast and supplyChains to prevent infinite remounting of intervals
 
   // Fetch Audit Logs
   useEffect(() => {
@@ -618,7 +652,7 @@ export function NotificationFeed() {
               ) : (
                 <>
                   <Plus className="h-4 w-4" />
-                  <span>Show {notifications.length - INITIAL_DISPLAY_COUNT} More</span>
+                  <span>Show {filteredNotifications.length - INITIAL_DISPLAY_COUNT} More</span>
                 </>
               )}
             </Button>

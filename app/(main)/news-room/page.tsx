@@ -66,7 +66,7 @@ const TimelineSkeleton = () => (
 export default function NewsRoomPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [selectedImpacts, setSelectedImpacts] = useState<string[]>([])
+  const [selectedImpacts, setSelectedImpacts] = useState<string[]>(['HIGH', 'CRITICAL'])
   const [selectedSupplyChains, setSelectedSupplyChains] = useState<string[]>([])
   const [timelineFilter, setTimelineFilter] = useState<'all' | 'today' | 'week' | 'month'>('all')
   const [selectedEvent, setSelectedEvent] = useState<ExtendedCriticalEvent | null>(null)

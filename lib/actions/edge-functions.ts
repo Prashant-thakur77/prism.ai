@@ -241,15 +241,195 @@ export async function getSupplyChainByIdAction(supplyChainId: string) {
 
 export async function getNewsRoomInfoAction(userId: string) {
   try {
-    // Bypassing get-news-room-info edge function as it returns 404
-    // Fallback: Currently returning empty data, but this could be expanded
-    // to fetch relevant news/events from the DB if a specific table exists.
-    return { 
-      data: {}, // Return empty object to prevent UI crashes
-      error: null 
-    };
+    const { data: supplyChains } = await supabaseServer.from('supply_chains').select('*').eq('user_id', userId);
+    if (!supplyChains || supplyChains.length === 0) return { data: {}, error: null };
+
+    // Fetch last 7 days of alert notifications (precise node-level match only)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const [{ data: alertNotifications }, { data: weatherRecords }] = await Promise.all([
+      supabaseServer
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .in('notification_type', ['supply_chain_alert', 'live_news_alert'])
+        .gte('created_at', sevenDaysAgo)
+        .order('created_at', { ascending: false }),
+      // Read pre-computed weather intelligence from the dedicated table
+      supabaseServer
+        .from('weather_intelligence')
+        .select('*')
+        .eq('user_id', userId)
+        .order('fetched_at', { ascending: false })
+    ]);
+
+    // Index weather records by node_id for O(1) lookup
+    const weatherMap = new Map<string, any>();
+    for (const wr of (weatherRecords || [])) {
+      if (!weatherMap.has(wr.node_id)) weatherMap.set(wr.node_id, wr);
+    }
+
+    const result: any = {};
+
+    for (const sc of supplyChains) {
+      const [{ data: nodes }, { data: edges }] = await Promise.all([
+        supabaseServer.from('nodes').select('*').eq('supply_chain_id', sc.supply_chain_id),
+        supabaseServer.from('edges').select('*').eq('supply_chain_id', sc.supply_chain_id),
+      ]);
+      if (!nodes || nodes.length === 0) continue;
+
+      const scKey = `${sc.name}_${sc.supply_chain_id}`;
+      const batchTimestamp = new Date().toISOString();
+      const batchNodes: any[] = [];
+      const matchedAlertIds = new Set<string>();
+
+      // ── A. Per-node: alerts matched by citations.affectedNodes (precise) ─────
+      for (const node of nodes) {
+        const criticalEvents: any[] = [];
+
+        // B. Pull weather from weather_intelligence table for this node FIRST
+        const wr = weatherMap.get(node.node_id);
+        const weatherForecast = wr ? { forecast: { location: wr.location_name || node.name, conditions: wr.weather_main, temp: wr.temp_celsius } } : null;
+
+        // ONLY match alerts where this exact node_id is in citations.affectedNodes
+        // AND exclude WEATHER alerts if we are already displaying live weather for this node
+        const nodeAlerts = (alertNotifications || []).filter(a =>
+          a.citations?.affectedNodes?.includes(node.node_id) &&
+          !(a.citations?.category === 'WEATHER' && wr && wr.is_adverse)
+        );
+
+        nodeAlerts.forEach(alert => {
+          matchedAlertIds.add(alert.notification_id);
+          // Use the stored category from citations if it exists, otherwise infer
+          const storedCategory = alert.citations?.category;
+          let category = 'OPERATIONAL';
+          if (storedCategory && ['WEATHER', 'GEOPOLITICAL', 'ECONOMIC', 'OPERATIONAL'].includes(storedCategory)) {
+            category = storedCategory;
+          } else {
+            const msg = (alert.message || '').toLowerCase();
+            if (msg.includes('strike') || msg.includes('war') || msg.includes('sanction') || msg.includes('tariff') || msg.includes('geopolit')) category = 'GEOPOLITICAL';
+            else if (msg.includes('economic') || msg.includes('inflation') || msg.includes('recession') || msg.includes('bankruptc')) category = 'ECONOMIC';
+            else if (msg.includes('weather') || msg.includes('storm') || msg.includes('flood') || msg.includes('cyclone') || msg.includes('earthquake') || msg.includes('snow') || msg.includes('hurricane')) category = 'WEATHER';
+          }
+
+          criticalEvents.push({
+            title: alert.title || 'Supply Chain Alert',
+            summary: alert.message,
+            severity: alert.severity === 'HIGH' || alert.severity === 'CRITICAL' ? 0.9 : alert.severity === 'MEDIUM' ? 0.6 : 0.3,
+            impact: alert.severity === 'CRITICAL' ? 'HIGH' : (alert.severity || 'MEDIUM'),
+            category,
+            affectedEntities: alert.citations?.affectedEntities || [node.name],
+            timeframe: 'Immediate',
+            confidence: alert.citations?.confidence || 0.85,
+            sources: alert.citations?.sources || []
+          });
+        });
+
+        if (wr && wr.is_adverse) {
+          criticalEvents.push({
+            title: `⛈️ ${wr.severity} Weather: ${wr.weather_main} at ${node.name}`,
+            summary: wr.ai_summary || `Adverse weather (${wr.weather_main}: ${wr.weather_desc}) at ${node.name}. Temp: ${wr.temp_celsius}°C, Wind: ${wr.wind_speed_ms} m/s.`,
+            severity: wr.severity === 'CRITICAL' ? 0.99 : wr.severity === 'HIGH' ? 0.8 : 0.5,
+            impact: wr.severity === 'CRITICAL' || wr.severity === 'HIGH' ? 'HIGH' : 'MEDIUM',
+            category: 'WEATHER',
+            affectedEntities: [node.name, wr.location_name || node.name],
+            timeframe: 'Current — Live',
+            confidence: 1.0,
+            sources: [{ url: 'https://openweathermap.org', title: 'OpenWeather Live Satellite', credibility: 1, publishedAt: wr.fetched_at }]
+          });
+        }
+
+        if (criticalEvents.length > 0) {
+          batchNodes.push({
+            nodeId: node.node_id,
+            nodeName: node.name,
+            nodeType: node.type,
+            recordTimestamp: new Date().toISOString(),
+            weather: weatherForecast,
+            criticalEvents,
+            mitigationSuggestions: []
+          });
+        }
+      }
+
+      // ── C. Transit route weather from weather_intelligence table ─────────────
+      const nodeMap = new Map((nodes || []).map((n: any) => [n.node_id, n]));
+      for (const edge of (edges || [])) {
+        const edgeKey = `edge:${edge.from_node_id}-${edge.to_node_id}`;
+        const wr = weatherMap.get(edgeKey);
+        if (!wr || !wr.is_adverse) continue;
+
+        const fromNode = nodeMap.get(edge.from_node_id);
+        const toNode = nodeMap.get(edge.to_node_id);
+        const routeName = wr.node_name || `${fromNode?.name ?? 'Origin'} → ${toNode?.name ?? 'Destination'}`;
+
+        batchNodes.push({
+          nodeId: edgeKey,
+          nodeName: routeName,
+          nodeType: 'transit_route',
+          recordTimestamp: new Date().toISOString(),
+          weather: { forecast: { location: wr.location_name || routeName, conditions: wr.weather_main, temp: wr.temp_celsius } },
+          criticalEvents: [{
+            title: `🚢 Transit Route Warning: ${wr.weather_main}`,
+            summary: wr.ai_summary || `Transit route ${routeName} is experiencing ${wr.weather_desc}. Temp: ${wr.temp_celsius}°C, Wind: ${wr.wind_speed_ms} m/s. Expect delays.`,
+            severity: wr.severity === 'CRITICAL' ? 0.99 : 0.8,
+            impact: wr.severity === 'CRITICAL' || wr.severity === 'HIGH' ? 'HIGH' : 'MEDIUM',
+            category: 'WEATHER',
+            affectedEntities: [routeName],
+            timeframe: 'Current — Live',
+            confidence: 1.0,
+            sources: [{ url: 'https://openweathermap.org', title: 'OpenWeather Live Satellite', credibility: 1, publishedAt: wr.fetched_at }]
+          }],
+          mitigationSuggestions: []
+        });
+      }
+
+      // ── D. Unmatched alerts → supply-chain-level fallback node ───────────────
+      // ONLY include unmatched alerts that actually belong to this specific supply chain
+      const unmatchedAlerts = (alertNotifications || []).filter(a => 
+        !matchedAlertIds.has(a.notification_id) && 
+        // We look for the supply chain ID in the citations, or we check if the node belongs to this SC
+        (a.citations?.supplyChainId === sc.supply_chain_id || 
+         a.citations?.affectedNodes?.some((nodeId: string) => nodeMap.has(nodeId)))
+      );
+      if (unmatchedAlerts.length > 0) {
+        batchNodes.push({
+          nodeId: `sc-level-${sc.supply_chain_id}`,
+          nodeName: `${sc.name} — Network Intelligence`,
+          nodeType: 'supply_chain',
+          recordTimestamp: new Date().toISOString(),
+          weather: null,
+          criticalEvents: unmatchedAlerts.map(alert => {
+            const storedCat = alert.citations?.category;
+            let category = 'OPERATIONAL';
+            if (storedCat && ['WEATHER', 'GEOPOLITICAL', 'ECONOMIC', 'OPERATIONAL'].includes(storedCat)) {
+              category = storedCat;
+            }
+            return {
+              title: alert.title || 'Network Intelligence Alert',
+              summary: alert.message,
+              severity: alert.severity === 'HIGH' || alert.severity === 'CRITICAL' ? 0.9 : 0.5,
+              impact: alert.severity === 'CRITICAL' ? 'HIGH' : (alert.severity || 'MEDIUM'),
+              category,
+              affectedEntities: alert.citations?.affectedEntities || [sc.name],
+              timeframe: 'Recent',
+              confidence: 0.75,
+              sources: alert.citations?.sources || []
+            };
+          }),
+          mitigationSuggestions: []
+        });
+      }
+
+      if (batchNodes.length > 0) {
+        result[scKey] = [{ batchTimestamp, nodes: batchNodes }];
+      }
+    }
+
+    return { data: result, error: null };
   } catch (err: any) {
     console.error("Critical error in getNewsRoomInfoAction:", err);
     return { data: {}, error: err.message };
   }
 }
+
+

@@ -41,46 +41,72 @@ export async function GET(request: NextRequest) {
        return NextResponse.json({ error: "Supply chain nodes not found" }, { status: 404 });
     }
 
-    // Deterministic Cooldown Check (5 minutes)
-    const { data: recentAlerts } = await supabaseServer
+    // 1.5 Fetch all alerts from the past 7 days to prevent duplicate news
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: existingAlerts } = await supabaseServer
       .from('notifications')
-      .select('created_at')
+      .select('created_at, citations, message')
       .eq('user_id', userId)
       .eq('notification_type', 'supply_chain_alert')
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .gte('created_at', sevenDaysAgo)
+      .order('created_at', { ascending: false });
 
-    if (recentAlerts && recentAlerts.length > 0) {
-      const lastAlertTime = new Date(recentAlerts[0].created_at).getTime();
+    // Deterministic Cooldown Check (5 minutes)
+    if (existingAlerts && existingAlerts.length > 0) {
+      const lastAlertTime = new Date(existingAlerts[0].created_at).getTime();
       if (Date.now() - lastAlertTime < 5 * 60 * 1000) {
         console.log('[ALERT-AGENT] Deterministic cooldown active. Skipping redundant scan.');
         return NextResponse.json({ success: true, alertsGenerated: 0, message: "Cooldown active." });
       }
     }
 
-    // 2. Extract key locations/keywords to build a targeted search query
-    // To avoid massive queries, we'll take top 5 nodes based on risk or just the first few if no risk is defined
+    // Extract all URLs that have already been used to generate alerts
+    const usedUrls = new Set<string>();
+    const existingMessages = new Set<string>();
+    for (const alert of (existingAlerts || [])) {
+       if (alert.message) existingMessages.add(alert.message);
+       if (alert.citations?.sources) {
+          for (const src of alert.citations.sources) {
+             if (src.url) usedUrls.add(src.url);
+          }
+       }
+    }
+
+    // 2. Extract concise location keywords to build a targeted search query.
+    // Tavily has a 400-char max - we take top 5 nodes and use only the first 2 words
+    // of each node name as a short, clean location keyword.
     const topNodes = [...nodes].sort((a, b) => (b.risk_level || 0) - (a.risk_level || 0)).slice(0, 5);
     
-    // Create a location string: "Shanghai, Los Angeles, Berlin"
     const locationKeywords = topNodes
-      .filter(n => n.name || n.address)
-      .map(n => n.name ? (n.name + (n.address ? ` ${n.address}` : '')) : n.address)
+      .filter(n => n.name)
+      .map(n => {
+        // Extract only the first 2 words from the node name as a short keyword
+        const shortName = (n.name as string).split(' ').slice(0, 2).join(' ');
+        return shortName;
+      })
       .join(' OR ');
 
-    const searchQuery = `supply chain disruption AND (${locationKeywords})`;
+    // Hard-cap the full query at 380 characters to stay under Tavily's 400 char limit
+    const rawQuery = `supply chain disruption news (${locationKeywords})`;
+    const searchQuery = rawQuery.length > 380 ? rawQuery.substring(0, 380) : rawQuery;
     console.log(`[ALERT-AGENT] Searching Tavily for: ${searchQuery}`);
 
     // 3. Query Tavily 
     const tavilyClient = tavily({ apiKey: process.env.TAVILY_API_KEY });
     const searchResult = await tavilyClient.search(searchQuery, {
       topic: 'news',
-      days: 3, // Look at recent news
-      maxResults: 5,
+      days: 3,
+      maxResults: 10, // Scan top 10 recent articles per cycle
     });
 
     if (!searchResult.results || searchResult.results.length === 0) {
       return NextResponse.json({ success: true, alertsGenerated: 0, message: "No relevant supply chain news found." });
+    }
+
+    // Filter out news we've already processed for alerts
+    const freshNews = searchResult.results.filter(r => !usedUrls.has(r.url));
+    if (freshNews.length === 0) {
+      return NextResponse.json({ success: true, alertsGenerated: 0, message: "No new supply chain news found (all recent news already processed)." });
     }
 
     // 4. Evaluate Threats using ADK LlmAgent
@@ -116,7 +142,7 @@ Critical Nodes:
 ${JSON.stringify(topNodes.map(n => ({ id: n.node_id, name: n.name, address: n.address, type: n.type })))}
 
 Latest News:
-${JSON.stringify(searchResult.results.map(r => ({ title: r.title, content: r.content, url: r.url, date: r.publishedDate })))}
+${JSON.stringify(freshNews.map(r => ({ title: r.title, content: r.content, url: r.url, date: r.publishedDate })))}
       Return a COMPLETE JSON object matching the requested schema exactly. `;
 
       for await (const event of runner.runEphemeral({
@@ -163,15 +189,24 @@ ${JSON.stringify(searchResult.results.map(r => ({ title: r.title, content: r.con
     if (!traceResult.success) throw new Error(traceResult.error);
     const object = traceResult.data as z.infer<typeof alertSchema>;
 
-    // 4.5. Deduplicate against existing alerts by URL
-    const { data: existingAlerts } = await supabaseServer
-      .from('notifications')
-      .select('citations')
-      .eq('user_id', userId)
-      .eq('notification_type', 'supply_chain_alert');
+    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).getTime();
+    const recentlyAlertedNodeIds = new Set(
+      (existingAlerts || [])
+        .filter((a: any) => new Date(a.created_at).getTime() >= twoDaysAgo)
+        .flatMap((n: any) => n.citations?.affectedNodes || [])
+    );
 
-    const existingUrls = new Set((existingAlerts || []).map((n: any) => n.citations?.sources?.[0]?.url).filter(Boolean));
-    const newAlerts = object.alerts?.filter((a) => !existingUrls.has(a.news_url)) || [];
+    // 4.5. Deduplicate by node ID and exact message to prevent LLM rewording duplicates
+    // We already filtered out old news URLs, so if the LLM generates an alert it's from NEW info.
+    // However, different news sites might report the same event, so we also filter by node ID.
+    const newAlerts = object.alerts?.filter((a) => {
+      // If we already alerted this exact node recently, drop it to avoid spamming the user.
+      if (recentlyAlertedNodeIds.has(a.node_id)) return false;
+      
+      // If the exact message somehow snuck through, drop it.
+      if (existingMessages.has(a.message)) return false;
+      return true;
+    }) || [];
 
     // 5. Save generated alerts to the database
     if (newAlerts.length > 0) {

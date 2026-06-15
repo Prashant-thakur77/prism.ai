@@ -51,10 +51,7 @@ export default function DashboardPage() {
         .ind-dot { width: 6px; height: 6px; border-radius: 50%; }
 
         /* BODY GRID */
-        .body-grid { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
-        @media (max-width: 1024px) {
-          .body-grid { grid-template-columns: 1fr; }
-        }
+        .body-grid { display: flex; flex-direction: column; gap: 16px; width: 100%; }
 
         /* ALERTS PANEL */
         .panel { background: #F6F3EE; border: 1px solid #E5DFD6; border-radius: 12px; overflow: hidden; }
@@ -180,89 +177,9 @@ export default function DashboardPage() {
 
           {/* BODY GRID */}
           <div className="body-grid">
-            {/* Left side: Alerts Panel */}
-            <div className="panel">
+            {/* Full Width: Alerts Panel */}
+            <div className="panel w-full">
               <NotificationFeed />
-            </div>
-
-            {/* Right side: Panels */}
-            <div className="side-panels">
-              {/* System Status */}
-              <div className="mini-panel">
-                <div className="mini-panel-header">System Status</div>
-                <div className="sys-status-list">
-                  <div className="sys-row">
-                    <div className="sys-label">Exposure Index</div>
-                    <div className="sys-val">{m.isLoading ? "…" : m.exposureIndex}</div>
-                    <div className="sys-meta">avg risk score</div>
-                  </div>
-                  <div className="sys-divider"></div>
-                  <div className="sys-row">
-                    <div className="sys-label">Mean Recovery</div>
-                    <div className="sys-val">{m.isLoading ? "…" : m.meanRecovery}</div>
-                    <div className="sys-meta">lead time estimate</div>
-                  </div>
-                  <div className="sys-divider"></div>
-                  <div className="sys-row">
-                    <div className="sys-label">Active Faults</div>
-                    <div className="sys-val" style={{ color: '#B91C1C' }}>{m.isLoading ? "…" : String(m.activeFaults)}</div>
-                    <div className="sys-meta">risk score &gt; 75</div>
-                  </div>
-                  <div className="sys-divider"></div>
-                  <div className="sys-row">
-                    <div className="sys-label">Supply Chains</div>
-                    <div className="sys-val">{m.isLoading ? "…" : String(m.totalSupplyChains)}</div>
-                    <div className="sys-meta">{m.isLoading ? "…" : `${m.totalNodes} nodes monitored`}</div>
-                  </div>
-                </div>
-                <div className="exposure-bar-wrap">
-                  <div className="exp-label-row">
-                    <span className="exp-label">Network Exposure</span>
-                    <span className="exp-val">{exposurePct}</span>
-                  </div>
-                  <div className="exp-bar">
-                    <div className="exp-fill" style={{ width: exposureFillWidth }}></div>
-                  </div>
-                  <div className="exp-sub">
-                    {m.isLoading ? "…" : `${m.totalNodes} total nodes · ${m.activeFaults} exposed`}
-                  </div>
-                </div>
-              </div>
-
-              {/* Node Health */}
-              <div className="mini-panel">
-                <div className="mini-panel-header">Node Health</div>
-                <div className="node-health-list">
-                  <div className="nh-row">
-                    <div className="nh-left">
-                      <div className="nh-dot" style={{ background: '#B91C1C' }}></div>
-                      <span className="nh-label">Origin / Suppliers</span>
-                    </div>
-                    <span className="nh-count">{m.isLoading ? "…" : m.nodeHealth.originNodes}</span>
-                  </div>
-                  <div className="nh-row">
-                    <div className="nh-left">
-                      <div className="nh-dot" style={{ background: '#B45309' }}></div>
-                      <span className="nh-label">Transit Hubs</span>
-                    </div>
-                    <span className="nh-count">{m.isLoading ? "…" : m.nodeHealth.transitHubs}</span>
-                  </div>
-                  <div className="nh-row">
-                    <div className="nh-left">
-                      <div className="nh-dot" style={{ background: '#2748E8' }}></div>
-                      <span className="nh-label">Distribution</span>
-                    </div>
-                    <span className="nh-count">{m.isLoading ? "…" : m.nodeHealth.distribution}</span>
-                  </div>
-                  <div className="nh-row">
-                    <div className="nh-left">
-                      <div className="nh-dot" style={{ background: '#1A7F4B' }}></div>
-                      <span className="nh-label">End Points</span>
-                    </div>
-                    <span className="nh-count">{m.isLoading ? "…" : m.nodeHealth.endPoints}</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
