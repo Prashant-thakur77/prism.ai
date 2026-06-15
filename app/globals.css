@@ -163,6 +163,11 @@
   * {
     @apply border-border;
   }
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
   body {
     background-color: var(--bg-primary) !important;
     color: var(--text-secondary) !important;
