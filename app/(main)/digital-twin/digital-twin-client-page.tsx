@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/dialog';
 import DigitalTwinEditSkeleton from '@/components/digital-twin/display/DigitalTwinEditSkeleton';
 import { supabaseClient } from '@/lib/supabase/client';
+import dynamic from "next/dynamic";
+const SupplyChainGlobe = dynamic(() => import("@/components/supply-chain"), { ssr: false });
 
 export default function DigitalTwinClientPage() {
   const [twinId, setTwinId] = useQueryState('twinId', parseAsString);
@@ -24,6 +26,8 @@ export default function DigitalTwinClientPage() {
   const [formParam] = useQueryState('form', parseAsString);
   const [activeTwinData, setActiveTwinData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  type ViewMode = "graph" | "globe" | "map";
+  const [viewMode, setViewMode] = useState<ViewMode>("graph");
 
   // URL state for form data - to recreate twin from URL parameters
   const [industryParam] = useQueryState('industry', parseAsString);
@@ -300,20 +304,55 @@ export default function DigitalTwinClientPage() {
     }
 
     if (activeTwinData) {
-      // If we have arch data in URL, let the canvas handle state entirely
-      if (activeTwinData.hasArchData) {
-        return <DigitalTwinCanvas />;
-      }
-      
-      // Otherwise, use the localStorage data if available
-      if (activeTwinData.nodes && activeTwinData.edges) {
-        return (
-          <DigitalTwinCanvas
-            initialNodes={activeTwinData.nodes}
-            initialEdges={activeTwinData.edges}
-          />
-        );
-      }
+      return (
+        <div className="relative w-full h-full flex flex-col flex-1">
+          {/* View toggle */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-1.5 rounded-full p-1.5 shadow-2xl"
+            style={{ background: "rgba(6, 10, 24, 0.85)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)" }}
+          >
+            <button
+              onClick={() => setViewMode("graph")}
+              className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+              style={{ background: viewMode === "graph" ? "#4B6EFF" : "transparent", color: viewMode === "graph" ? "#fff" : "#9ca3af" }}
+            >
+              Graph View
+            </button>
+            <button
+              onClick={() => setViewMode("globe")}
+              className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+              style={{ background: viewMode === "globe" ? "#4B6EFF" : "transparent", color: viewMode === "globe" ? "#fff" : "#9ca3af" }}
+            >
+              🌐 Globe
+            </button>
+            <button
+              onClick={() => setViewMode("map")}
+              className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+              style={{ background: viewMode === "map" ? "#4B6EFF" : "transparent", color: viewMode === "map" ? "#fff" : "#9ca3af" }}
+            >
+              🗺️ Map
+            </button>
+          </div>
+
+          {viewMode === "graph" && (
+            activeTwinData.hasArchData ? (
+              <DigitalTwinCanvas />
+            ) : (
+              <DigitalTwinCanvas
+                initialNodes={activeTwinData.nodes}
+                initialEdges={activeTwinData.edges}
+              />
+            )
+          )}
+          
+          {(viewMode === "globe" || viewMode === "map") && (
+            <div className="absolute inset-0 z-0 bg-[#060a18] rounded-xl overflow-hidden"
+              style={{ top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column" }}
+            >
+              <SupplyChainGlobe twinId={twinId} mode={viewMode} />
+            </div>
+          )}
+        </div>
+      );
     }
 
     return (
