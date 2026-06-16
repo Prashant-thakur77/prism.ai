@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "deploy:gcp": "gcloud builds submit --tag gcr.io/prism-ai-production/prism-ai && gcloud run deploy prism-ai --image gcr.io/prism-ai-production/prism-ai --platform managed --region us-central1 --allow-unauthenticated --env-vars-file=.env.yaml",
     "sentry:setup": "node scripts/add-sentry-to-apis.mjs",
     "sentry:check": "node scripts/check-api-routes.mjs"
   },

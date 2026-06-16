@@ -37,3 +37,5 @@ next-env.d.ts
 .env.sentry-build-plugin
 HACKATHON_BLOG_POST.md
 *.ps1
+.env.yaml
+.pnpm-store/
